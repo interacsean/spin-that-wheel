@@ -5,6 +5,7 @@ import { Action } from '../Action';
 import { useRemoteItems } from '../App/useRemoteItems';
 import { useKeyAction } from '../useKeyAction';
 import { useOpenTab, playMusic } from '../../services/music/SpotifyTab';
+import AudioPlayer from '../../services/local-media/AudioPlayer';
 
 /**
  * - Has multiple slide screens
@@ -29,11 +30,17 @@ enum Screens {
   Settings,
 }
 
+enum AudioStates {
+  WheelAudio,
+  Silent,
+}
+
 function App() {
   const initialItems = useRemoteItems();
   const [items, setItems] = useState<string[] | undefined>();
   const [state, setState] = useState<WheelStates>(WheelStates.Rest);
   const [screen, setScreen] = useState<Screens>(Screens.Ambient);
+  const [audioState, setAudioState] = useState<AudioStates>(AudioStates.Silent);
   const { openTab, spotifyTab } = useOpenTab();
 
   useEffect(
@@ -60,6 +67,17 @@ function App() {
       function playMusic_() {
         // @ts-ignore
         playMusic(spotifyTab);
+      },
+      [spotifyTab]
+    )
+  );
+  useKeyAction(
+    'b',
+    useCallback(
+      function playSpinWheelAudio() {
+        setAudioState((s) => s === AudioStates.WheelAudio 
+          ? AudioStates.Silent 
+          : AudioStates.WheelAudio)
       },
       [spotifyTab]
     )
@@ -129,6 +147,7 @@ function App() {
 
   return (
     <>
+      <AudioPlayer playing={audioState === AudioStates.WheelAudio} />
       <div className={getScreenClasses(screen === Screens.Ambient)}>
         <h1>Ambient</h1>
       </div>
