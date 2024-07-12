@@ -8,38 +8,7 @@ type WheelProps = {
   onSpinStart: () => void;
 };
 
-const useWhatsChanged = (props: Record<string, unknown>, prefix = '') => {
-  const prevProps = useRef(props);
-
-  useEffect(() => {
-    Object.entries(props).forEach(([key, value]) => {
-      if (
-        !Object.prototype.hasOwnProperty.call(prevProps.current, key) ||
-        prevProps.current[key] !== value
-      ) {
-        // eslint-disable-next-line no-console
-        console.log(`${prefix} ${key} has changed ${value}`);
-      }
-    });
-
-    prevProps.current = props;
-  }, [props, prefix]);
-};
-
-// function initWheel(canvasRef) {
-//   const canvas = canvasRef.current;
-//   if (!canvas) return;
-
-//   const ctx = canvas.getContext('2d');
-//   if (!ctx) return;
-
-// }
-// console.log('UFX');
-
-// const drawWheel = () => {
-// };
-
-function drawWheel(canvasRef: any, angle: number) {
+function drawWheel(canvasRef: any, angle: number, items: string[]) {
   const canvas = canvasRef.current;
   if (!canvas) return;
 
@@ -51,7 +20,7 @@ function drawWheel(canvasRef: any, angle: number) {
   const centerX = width / 2;
   const centerY = height / 2;
   const radius = Math.min(centerX, centerY) - 10;
-  const segments = 12;
+  const segments = items.length;
   const segmentAngle = (2 * Math.PI) / segments;
   const colors = [
     '#FF5733',
@@ -67,21 +36,7 @@ function drawWheel(canvasRef: any, angle: number) {
     '#FF33FF',
     '#33FF77',
   ];
-  const labels = [
-    '1',
-    '2',
-    '3',
-    '4',
-    '5',
-    '6',
-    '7',
-    '8',
-    '9',
-    '10',
-    '11',
-    '12',
-  ];
-
+  
   ctx.clearRect(0, 0, width, height);
   for (let i = 0; i < segments; i++) {
     const startAngle = angle + i * segmentAngle;
@@ -103,7 +58,7 @@ function drawWheel(canvasRef: any, angle: number) {
     ctx.textAlign = 'right';
     ctx.fillStyle = 'black';
     ctx.font = '20px Arial';
-    ctx.fillText(labels[i], radius - 10, 10);
+    ctx.fillText(items[i] || '-', radius - 10, 10);
     ctx.restore();
   }
 }
@@ -111,9 +66,10 @@ function drawWheel(canvasRef: any, angle: number) {
 function startWheelAnimation(
   canvasRef: Ref<HTMLCanvasElement>,
   angle: number = 0,
+  items: string[],
   callback: (angle: number) => void
 ) {
-  let spinVelocity = 0.0001; // (Math.random() * 0.2 + 0.3) / 60; // todo: convert to
+  let spinVelocity = 0.0001 + (Math.random() * 0.00003);
   let spinAccelerationAbs = -0.000000001;
   let spinAccelerationMult = 0.0003;
   let lastAnimationTime = performance.now();
@@ -122,11 +78,11 @@ function startWheelAnimation(
     if (spinVelocity > 0) {
       const timeDelta = time - lastAnimationTime;
       const angleMoved = spinVelocity * timeDelta;
-      angle = angle - angleMoved;
+      angle = angle + angleMoved;
       spinVelocity =
         spinVelocity * (1 - (spinAccelerationMult * timeDelta) / 60) +
         spinAccelerationAbs;
-      drawWheel(canvasRef, angle);
+      drawWheel(canvasRef, angle, items);
       requestAnimationFrame(animateSpin);
     } else {
       callback(angle); // calculate item
@@ -158,14 +114,14 @@ export const Wheel = ({
   console.log('Draw wheel');
   useEffect(
     function initialDraw() {
-      if (canvasRef) drawWheel(canvasRef, wheelAngle);
+      if (canvasRef) drawWheel(canvasRef, wheelAngle, items);
     },
     [canvasRef]
   );
 
   const spin = () => {
     onSpinStart();
-    startWheelAnimation(canvasRef, wheelAngle, (finishingAngle: number) => {
+    startWheelAnimation(canvasRef, wheelAngle, items, (finishingAngle: number) => {
       const selectedItem = calculateChosenItem(items, finishingAngle);
       // finishng angle -19.91 -> exactly on 8/9
       console.log({ finishingAngle, items, selectedItem });
