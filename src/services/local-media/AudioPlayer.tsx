@@ -22,6 +22,7 @@ export const AudioPlayer = ({ playing }: AudioPlayerProps) => {
   };
 
   useEffect(function togglePlaying() {
+    console.log({ playing })
     if (playing) {
       playAudio();
     } else {
@@ -30,12 +31,7 @@ export const AudioPlayer = ({ playing }: AudioPlayerProps) => {
   }, [playing]);
 
   return (
-    <div>
-      <audio ref={audioRef} src="/bh-01.mp3" preload="auto" />
-      <button onClick={playAudio}>Play</button>
-      <button onClick={pauseAudio}>Pause</button>
-      <button onClick={stopAudio}>Stop</button>
-    </div>
+    <audio ref={audioRef} src="/bh-01.mp3" preload="auto" />
   );
 };
 

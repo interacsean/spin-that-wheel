@@ -1,22 +1,10 @@
 import { useCallback, useEffect, useState } from 'react';
 import './App.css';
 import { Wheel } from '../Wheel/Wheel';
-import { Action } from '../Action';
 import { useRemoteItems } from '../App/useRemoteItems';
 import { useKeyAction } from '../useKeyAction';
 import { useOpenTab, playMusic } from '../../services/music/SpotifyTab';
 import AudioPlayer from '../../services/local-media/AudioPlayer';
-
-/**
- * - Has multiple slide screens
- * - Items come from async function (external source)
- * - Can spin button from keyboard shortcut
- * - Can fade/hide wheel from keyboard shortcut
- * - Can reset all items from double-keyboard shortcut
- * - Can bring up wheel from kbs
- * - Has sound when spinning
- * -
- */
 
 enum WheelStates {
   Spinning,
@@ -38,6 +26,7 @@ enum AudioStates {
 function App() {
   const initialItems = useRemoteItems();
   const [items, setItems] = useState<string[] | undefined>();
+  const [currentItem, setCurrentItem] = useState<string | undefined>();
   const [state, setState] = useState<WheelStates>(WheelStates.Rest);
   const [screen, setScreen] = useState<Screens>(Screens.Ambient);
   const [audioState, setAudioState] = useState<AudioStates>(AudioStates.Silent);
@@ -52,6 +41,7 @@ function App() {
     [initialItems]
   );
   const onSpinComplete = useCallback((selectedItem: string) => {
+    setCurrentItem(selectedItem);
     console.log({ selectedItem });
     setState(WheelStates.Rest);
     setItems((items) => (items || []).filter((item) => item !== selectedItem));
@@ -65,8 +55,9 @@ function App() {
     'p',
     useCallback(
       function playMusic_() {
-        // @ts-ignore
-        playMusic(spotifyTab);
+        if (spotifyTab) {
+          playMusic(spotifyTab);
+        }
       },
       [spotifyTab]
     )
@@ -112,16 +103,10 @@ function App() {
   );
 
   useKeyAction(
-    'm',
-    useCallback(function toggleMusic() {
-      // setScreen(Screens.Ambient);
-    }, [])
-  );
-
-  useKeyAction(
     's',
     useCallback(function onSpin() {
       setState(WheelStates.Spinning);
+      setAudioState(AudioStates.WheelAudio);
     }, [])
   );
 
@@ -140,10 +125,6 @@ function App() {
     () => openTab('playlist/58PdBqWcgGV2g11HlEygZU'),
     []
   );
-
-  useEffect(() => {
-    console.log({ spotifyTab });
-  }, [spotifyTab]);
 
   return (
     <>
