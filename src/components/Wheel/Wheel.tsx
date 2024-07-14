@@ -1,5 +1,8 @@
-import { useEffect, useRef, useState, Ref } from 'react';
+import { useEffect, useRef, useState, Ref, useCallback } from 'react';
 import { calculateChosenItem } from '../Wheel/calculateChosenItem';
+import { useFullScreenCanvas } from './useFullScreenCanvas';
+
+const WHEEL_CANVAS_RATIO_MAX = 0.85;
 
 type WheelProps = {
   items: string[];
@@ -8,18 +11,24 @@ type WheelProps = {
   onSpinStart: () => void;
 };
 
-function drawWheel(canvasRef: any, angle: number, items: string[]) {
+function drawWheel(
+  canvasRef: any,
+  angle: number,
+  items: string[],
+  zoom: number = 0,
+) {
   const canvas = canvasRef.current;
   if (!canvas) return;
-
   const ctx = canvas.getContext('2d');
   if (!ctx) return;
 
-  const width = canvas.width;
-  const height = canvas.height;
-  const centerX = width / 2;
-  const centerY = height / 2;
-  const radius = Math.min(centerX, centerY) - 10;
+  const width = canvas.width * WHEEL_CANVAS_RATIO_MAX;
+  const height = canvas.height * WHEEL_CANVAS_RATIO_MAX;
+  const wheelLeft = (canvas.width - width) / 2;
+  const wheelTop = (canvas.height - height) / 2;
+  const centerX = wheelLeft + width / 2;
+  const centerY = wheelTop + height / 2;
+  const radius = Math.min(height, width) / 2;
   const segments = items.length;
   const segmentAngle = (2 * Math.PI) / segments;
   const colors = [
@@ -37,7 +46,16 @@ function drawWheel(canvasRef: any, angle: number, items: string[]) {
     '#33FF77',
   ];
   
-  ctx.clearRect(0, 0, width, height);
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  const maxZoomScale = 0.5; // Arbitrary scale value to zoom in fully to one segment
+  const zoomScale = 1 + zoom * maxZoomScale;
+  // console.log({ zoomScale, zoom })
+  ctx.save();
+  ctx.translate(centerX, centerY);
+  ctx.scale(zoomScale, zoomScale);
+  ctx.translate(-centerX, -centerY);
+  // ctx.translate(maxZoomScale * radius / 2, 0);
+  
   for (let i = 0; i < segments; i++) {
     const startAngle = angle + i * segmentAngle;
     const endAngle = startAngle + segmentAngle;
@@ -61,6 +79,7 @@ function drawWheel(canvasRef: any, angle: number, items: string[]) {
     ctx.fillText(items[i] || '-', radius - 10, 10);
     ctx.restore();
   }
+  ctx.restore();
 }
 
 function startWheelAnimation(
@@ -69,23 +88,30 @@ function startWheelAnimation(
   items: string[],
   callback: (angle: number) => void
 ) {
-  let spinVelocity = 0.0001 + (Math.random() * 0.00003);
-  let spinAccelerationAbs = -0.000000001;
-  let spinAccelerationMult = 0.0003;
+  let spinVelocity = 0.01 + (Math.random() * 0.00003);
+  let spinAccelerationAbs = -0.000005;
+  let spinAccelerationMult = 0.02;
+  // TODO: introduce way to interjecting with keypress to initiate slowdown
   let lastAnimationTime = performance.now();
+  let zoom = 0;
 
   const animateSpin: FrameRequestCallback = (time) => {
+    const timeDelta = time - lastAnimationTime;
+    lastAnimationTime = time;
     if (spinVelocity > 0) {
-      const timeDelta = time - lastAnimationTime;
+      if (spinVelocity < 0.005) {
+        // TODO: work on zoom rate and velocity cutoffs, and some easing.  Maybe as a sine ratio of some velocity
+        zoom = Math.min(1, zoom + (0.3) * timeDelta/1000);
+      }
       const angleMoved = spinVelocity * timeDelta;
       angle = angle + angleMoved;
       spinVelocity =
         spinVelocity * (1 - (spinAccelerationMult * timeDelta) / 60) +
         spinAccelerationAbs;
-      drawWheel(canvasRef, angle, items);
+      drawWheel(canvasRef, angle, items, zoom);
       requestAnimationFrame(animateSpin);
     } else {
-      callback(angle); // calculate item
+      callback(angle);
     }
   };
   animateSpin(lastAnimationTime);
@@ -96,35 +122,25 @@ export const Wheel = ({
   spinning,
   onSpinComplete,
   onSpinStart,
-  ...rest
 }: WheelProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [wheelAngle, setWheelAngle] = useState(0);
-  const [isSpinning, setIsSpinning] = useState<boolean>(false);
-  // useWhatsChanged({
-  //   angle,
-  //   spinVelocity,
-  //   spinAcceleration,
-  //   items,
-  //   spinning,
-  //   onSpinComplete,
-  //   ...rest,
-  // });
+  
+  // const [isSpinning, setIsSpinning] = useState<boolean>(false);
+  
+  const redrawWheel = useCallback(() => {
+    drawWheel(canvasRef, wheelAngle, items, 1);
+  }, [wheelAngle, items]);
 
-  console.log('Draw wheel');
-  useEffect(
-    function initialDraw() {
-      if (canvasRef) drawWheel(canvasRef, wheelAngle, items);
-    },
-    [canvasRef]
-  );
+  useFullScreenCanvas(canvasRef, redrawWheel);
+
+  useEffect(redrawWheel,[redrawWheel]);
 
   const spin = () => {
     onSpinStart();
     startWheelAnimation(canvasRef, wheelAngle, items, (finishingAngle: number) => {
       const selectedItem = calculateChosenItem(items, finishingAngle);
-      // finishng angle -19.91 -> exactly on 8/9
-      console.log({ finishingAngle, items, selectedItem });
+      // console.log({ finishingAngle, items, selectedItem });
       setWheelAngle(finishingAngle);
       onSpinComplete(`${finishingAngle}`);
     });
@@ -140,23 +156,8 @@ export const Wheel = ({
 
   return (
     <div>
-      <canvas ref={canvasRef} width="500" height="500"></canvas>
-      <button onClick={spin}>Spin</button>
+      <canvas ref={canvasRef}></canvas>
+      {/* <button onClick={spin}>Spin</button> */}
     </div>
   );
-
-  // useEffect(
-  //   function startSpin() {
-  //     if (spinning) {
-  //       console.log('Start sound');
-  //       setTimeout(() => {
-  //         console.log('Finish sound');
-  //         const selectedItem = items[Math.floor(Math.random() * items.length)];
-  //         onSpinComplete(selectedItem);
-  //       }, 3000);
-  //     }
-  //   },
-  //   [spinning]
-  // );
-  // return <div>{items.join(', ')}</div>;
 };
