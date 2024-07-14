@@ -130,10 +130,10 @@ function App() {
     <>
       <AudioPlayer playing={audioState === AudioStates.WheelAudio} />
       <div className={getScreenClasses(screen === Screens.Ambient)}>
-        <h1>Ambient</h1>
+        <img src="/cr-light.png" style={{ width: '100vw', height: '100vh', objectFit: 'cover' }} />
       </div>
       <div className={getScreenClasses(screen === Screens.OnStage)}>
-        <h1>On Stage</h1>
+        <img src="/cr-dark.png" style={{ width: '100vw', height: '100vh', objectFit: 'cover' }} />
       </div>
       <div className={getScreenClasses(screen === Screens.Wheel)}>
         {items?.length && (
