@@ -14,6 +14,7 @@ enum WheelStates {
 enum Screens {
   Ambient,
   OnStage,
+  Social,
   Wheel,
   Settings,
 }
@@ -48,7 +49,7 @@ function App() {
   }, []);
 
   const onSpinStart = useCallback(() => {
-    // mute music if playing
+    // TODO: mute music if playing
   }, []);
 
   useKeyAction(
@@ -82,13 +83,6 @@ function App() {
   );
 
   useKeyAction(
-    '\\',
-    useCallback(function goToSettings() {
-      setScreen(Screens.Settings);
-    }, [])
-  );
-
-  useKeyAction(
     '2',
     useCallback(function goToOnStage() {
       setScreen(Screens.OnStage);
@@ -99,6 +93,26 @@ function App() {
     'w',
     useCallback(function goToOnStage() {
       setScreen(Screens.Wheel);
+    }, [])
+  );
+  useKeyAction(
+    '3',
+    useCallback(function goToOnStage() {
+      setScreen(Screens.Wheel);
+    }, [])
+  );
+
+  useKeyAction(
+    '4',
+    useCallback(function goToOnStage() {
+      setScreen(Screens.Social);
+    }, [])
+  );
+
+  useKeyAction(
+    '\\',
+    useCallback(function goToSettings() {
+      setScreen(Screens.Settings);
     }, [])
   );
 
@@ -135,6 +149,9 @@ function App() {
       <div className={getScreenClasses(screen === Screens.OnStage)}>
         <img src="/cr-dark.png" style={{ width: '100vw', height: '100vh', objectFit: 'cover' }} />
       </div>
+      <div className={getScreenClasses(screen === Screens.Social)}>
+        <img src="/cr-social.png" style={{ width: '100vw', height: '100vh', objectFit: 'cover' }} />
+      </div>
       <div className={getScreenClasses(screen === Screens.Wheel)}>
         {items?.length && (
           <Wheel
@@ -149,7 +166,6 @@ function App() {
         <h1>Settings</h1>
         <button onClick={openSpotifyTab}>Open Spotify controlled tab</button>
         <p>Status: {spotifyTab ? 'Connected!' : 'Pending...'}</p>
-        {/* <input id="key" /> */}
       </div>
     </>
   );
