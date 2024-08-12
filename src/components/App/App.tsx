@@ -43,9 +43,7 @@ function App() {
   );
   const onSpinComplete = useCallback((selectedItem: string) => {
     setCurrentItem(selectedItem);
-    console.log({ selectedItem });
     setState(WheelStates.Rest);
-    setItems((items) => (items || []).filter((item) => item !== selectedItem));
   }, []);
 
   const onSpinStart = useCallback(() => {
@@ -95,6 +93,7 @@ function App() {
       setScreen(Screens.Wheel);
     }, [])
   );
+
   useKeyAction(
     '3',
     useCallback(function goToOnStage() {
@@ -122,6 +121,14 @@ function App() {
       setState(WheelStates.Spinning);
       setAudioState(AudioStates.WheelAudio);
     }, [])
+  );
+
+  useKeyAction(
+    'x',
+    useCallback(function discardSelectedItem() {
+      console.log('discarding ', currentItem);
+      setItems((items) => items?.filter((item) => item !== currentItem));
+    }, [currentItem])
   );
 
   useKeyAction(

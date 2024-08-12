@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, Ref, useCallback } from 'react';
 import { calculateChosenItem } from '../Wheel/calculateChosenItem';
 import { useFullScreenCanvas } from './useFullScreenCanvas';
+import { useKeyAction } from '../useKeyAction';
 
 const WHEEL_CANVAS_RATIO_MAX = 0.85;
 
@@ -89,10 +90,11 @@ function startWheelAnimation(
   callback: (angle: number) => void
 ) {
   const slowdownCutoff = 0.0005;
+  const spinAccelerationAbs = -0.000005;
+  const slowSpinVelocityAbs = 0.0001;
+  const spinAccelerationMult = 0.02;
   let spinVelocity = 0.01 + (Math.random() * 0.00003);
-  let spinAccelerationAbs = -0.000005;
   let terminalAngle: number | undefined = undefined;
-  let spinAccelerationMult = 0.02;
   // TODO: introduce way to interjecting with keypress to initiate slowdown
   let lastAnimationTime = performance.now();
   let zoom = 0;
@@ -120,13 +122,15 @@ function startWheelAnimation(
         if (angle > terminalAngle) {
           angle = terminalAngle;
           spinVelocity = 0;
+          console.log('hit terminal')
         } else {
-          angle = angle + Math.min(slowdownCutoff, (terminalAngle - angle) * 0.002) * timeDelta + spinAccelerationAbs;
+          angle = angle + Math.max(0, Math.min(slowdownCutoff, (terminalAngle - angle) * 0.002)) * timeDelta + slowSpinVelocityAbs;
         }
       }
       drawWheel(canvasRef, angle, items, zoom);
       requestAnimationFrame(animateSpin);
     } else {
+      console.log('calling cb');
       callback(angle);
     }
   };
@@ -142,23 +146,27 @@ export const Wheel = ({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [wheelAngle, setWheelAngle] = useState(0);
   
-  // const [isSpinning, setIsSpinning] = useState<boolean>(false);
-  
-  const redrawWheel = useCallback(() => {
-    drawWheel(canvasRef, wheelAngle, items, 1);
+  const redrawWheel = useCallback((zoom: number = 0) => {
+    drawWheel(canvasRef, wheelAngle, items, zoom);
   }, [wheelAngle, items]);
 
-  useFullScreenCanvas(canvasRef, redrawWheel);
+  useKeyAction(
+    'z',
+    useCallback(function resetZoom() {
+      redrawWheel()
+    }, [redrawWheel])
+  );
 
-  useEffect(redrawWheel,[redrawWheel]);
+  useFullScreenCanvas(canvasRef, redrawWheel);
+  
+  useEffect(redrawWheel,[items]);
 
   const spin = () => {
     onSpinStart();
     startWheelAnimation(canvasRef, wheelAngle, items, (finishingAngle: number) => {
       const selectedItem = calculateChosenItem(items, finishingAngle);
-      // console.log({ finishingAngle, items, selectedItem });
       setWheelAngle(finishingAngle);
-      onSpinComplete(`${finishingAngle}`);
+      onSpinComplete(selectedItem);
     });
   };
   useEffect(

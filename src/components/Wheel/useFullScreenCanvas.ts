@@ -21,7 +21,7 @@ export function useFullScreenCanvas(
     return () => {
       window.removeEventListener('resize', setCanvasSize);
     };
-  }, [redraw]);
+  }, []);
 
   return canvasRef;
 }

@@ -10,6 +10,6 @@
     [ ] Has attractive color scheme
     [ ] Has Nice borders between segments
     [ ] Has background
-[ ] Has stage-ready slides
+[x] Has stage-ready slides
 [ ] Has randomised audio when spinning wheel
-[ ] Can remove an item from whe wheel
+[x] Can remove an item from whe wheel
