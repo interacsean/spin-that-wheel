@@ -47,14 +47,14 @@ function drawWheel(
   ];
   
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  const maxZoomScale = 0.5; // Arbitrary scale value to zoom in fully to one segment
+  const maxZoomScale = 2; // Arbitrary scale value to zoom in fully to one segment
   const zoomScale = 1 + zoom * maxZoomScale;
   // console.log({ zoomScale, zoom })
   ctx.save();
   ctx.translate(centerX, centerY);
   ctx.scale(zoomScale, zoomScale);
   ctx.translate(-centerX, -centerY);
-  // ctx.translate(maxZoomScale * radius / 2, 0);
+  ctx.translate(zoom * -radius / 2, 0);
   
   for (let i = 0; i < segments; i++) {
     const startAngle = angle + i * segmentAngle;
@@ -88,8 +88,10 @@ function startWheelAnimation(
   items: string[],
   callback: (angle: number) => void
 ) {
+  const slowdownCutoff = 0.0005;
   let spinVelocity = 0.01 + (Math.random() * 0.00003);
   let spinAccelerationAbs = -0.000005;
+  let terminalAngle: number | undefined = undefined;
   let spinAccelerationMult = 0.02;
   // TODO: introduce way to interjecting with keypress to initiate slowdown
   let lastAnimationTime = performance.now();
@@ -101,13 +103,27 @@ function startWheelAnimation(
     if (spinVelocity > 0) {
       if (spinVelocity < 0.005) {
         // TODO: work on zoom rate and velocity cutoffs, and some easing.  Maybe as a sine ratio of some velocity
-        zoom = Math.min(1, zoom + (0.3) * timeDelta/1000);
+        zoom = Math.min(1, zoom + (0.5) * timeDelta/1000);
       }
-      const angleMoved = spinVelocity * timeDelta;
-      angle = angle + angleMoved;
-      spinVelocity =
-        spinVelocity * (1 - (spinAccelerationMult * timeDelta) / 60) +
-        spinAccelerationAbs;
+      if (spinVelocity > slowdownCutoff) {
+        const angleMoved = spinVelocity * timeDelta;
+        angle = angle + angleMoved;
+        spinVelocity =
+          spinVelocity * (1 - (spinAccelerationMult * timeDelta) / 60) +
+          spinAccelerationAbs;
+      } else {
+        spinVelocity = slowdownCutoff;
+        if (!terminalAngle) {
+          const segmentWedgeAngle = (Math.PI * 2 / items.length);
+          terminalAngle = Math.round(angle / segmentWedgeAngle) * segmentWedgeAngle + (0.5 * segmentWedgeAngle);
+        }
+        if (angle > terminalAngle) {
+          angle = terminalAngle;
+          spinVelocity = 0;
+        } else {
+          angle = angle + Math.min(slowdownCutoff, (terminalAngle - angle) * 0.002) * timeDelta + spinAccelerationAbs;
+        }
+      }
       drawWheel(canvasRef, angle, items, zoom);
       requestAnimationFrame(animateSpin);
     } else {
