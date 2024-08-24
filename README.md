@@ -5,7 +5,7 @@ Application for Comedy Roulette live comedy night
 The app uses keyboard shortcuts to navigate and control the wheel
  - `1` – Ambient screen
  - `2` – Ambient screen (dark version)
- - `3`/`w` – The wheen
+ - `3`/`w` – The wheel
    - `s` – Spin wheel (auto-plays Benny Hill themesong)
    - `x` – Discard selected wedge
    - `z` – Toggle zoom level between focused on selected wedge, or whole wheel

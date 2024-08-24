@@ -32,31 +32,24 @@ function drawWheel(
   const radius = Math.min(height, width) / 2;
   const segments = items.length;
   const segmentAngle = (2 * Math.PI) / segments;
+
+  // Colors that match the screenshot
   const colors = [
-    '#FF5733',
-    '#33FF57',
-    '#3357FF',
-    '#FF33A1',
-    '#FFAA33',
-    '#33FFAA',
-    '#AA33FF',
-    '#FF3333',
-    '#33FFFF',
-    '#FFFF33',
-    '#FF33FF',
-    '#33FF77',
+    '#FFB6C1', '#ADD8E6', '#90EE90', '#FFD700',
+    '#FF69B4', '#87CEEB', '#98FB98', '#FFA07A',
+    '#DB7093', '#AFEEEE', '#EE82EE', '#F0E68C',
   ];
-  
+
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   const maxZoomScale = 2; // Arbitrary scale value to zoom in fully to one segment
   const zoomScale = 1 + zoom * maxZoomScale;
-  // console.log({ zoomScale, zoom })
+
   ctx.save();
   ctx.translate(centerX, centerY);
   ctx.scale(zoomScale, zoomScale);
   ctx.translate(-centerX, -centerY);
   ctx.translate(zoom * -radius / 2, 0);
-  
+
   for (let i = 0; i < segments; i++) {
     const startAngle = angle + i * segmentAngle;
     const endAngle = startAngle + segmentAngle;
@@ -66,20 +59,100 @@ function drawWheel(
     ctx.moveTo(centerX, centerY);
     ctx.arc(centerX, centerY, radius, startAngle, endAngle);
     ctx.closePath();
+
+    // Fill the segment with colors matching the screenshot
     ctx.fillStyle = colors[i % colors.length];
     ctx.fill();
+
+    // Add segment border to match the screenshot
+    ctx.strokeStyle = 'black'; // Black border to match the screenshot
+    ctx.lineWidth = 3; // Adjust to match the thickness in the screenshot
     ctx.stroke();
 
     // Draw text
     ctx.save();
     ctx.translate(centerX, centerY);
     ctx.rotate(startAngle + segmentAngle / 2);
-    ctx.textAlign = 'right';
+    ctx.textAlign = 'center';
     ctx.fillStyle = 'black';
-    ctx.font = '20px Arial';
-    ctx.fillText(items[i] || '-', radius - 10, 10);
+    const fontSize = 14;
+    ctx.font = `${fontSize}px Arial`;
+
+    // Custom function to wrap text
+    const wrapText = (text: string, maxWidth: number) => {
+      const words = text.split(' ');
+      const lines = [];
+      let currentLine = '';
+
+      words.forEach((word) => {
+        const testLine = currentLine + word + ' ';
+        const metrics = ctx.measureText(testLine);
+        const testWidth = metrics.width;
+
+        if (testWidth > maxWidth && currentLine !== '') {
+          lines.push(currentLine);
+          currentLine = word + ' ';
+        } else {
+          currentLine = testLine;
+        }
+      });
+
+      lines.push(currentLine.trim());
+      return lines;
+    };
+
+    const maxTextWidth = radius * 0.7; // Adjust this value to your desired width
+    const lines = wrapText(items[i] || '-', maxTextWidth);
+    const lineHeight = fontSize * 1.4; // Adjust based on your font size
+    const totalTextHeight = (lines.length - 1) * lineHeight;
+
+    lines.forEach((line, index) => {
+      ctx.fillText(line, radius * 0.63, -(totalTextHeight / 2) + index * lineHeight);
+    });
+
     ctx.restore();
   }
+
+  // Draw the center-piece (white circle with red pie segments)
+  const centerPieceRadius = radius * 0.15; // Adjust the size to match the screenshot
+  const pieSegmentCount = 36; // Number of red pie segments in the circle
+  const pieSegmentAngle = (2 * Math.PI) / pieSegmentCount;
+
+  // Draw the white circle with stroke and shadow
+  ctx.save();
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+  ctx.shadowBlur = 10;
+  ctx.shadowOffsetX = 0;
+  ctx.shadowOffsetY = 0;
+
+  ctx.beginPath();
+  ctx.arc(centerX, centerY, centerPieceRadius, 0, 2 * Math.PI);
+  ctx.fillStyle = 'white';
+  ctx.fill();
+
+  ctx.lineWidth = 2;
+  ctx.strokeStyle = 'black';
+  ctx.stroke();
+  ctx.restore();
+
+  // Draw the red pie segments
+  ctx.fillStyle = '#ffaaaa';
+  for (let i = 0; i < pieSegmentCount; i++) {
+    const startAngle = i * pieSegmentAngle;
+    const endAngle = startAngle + pieSegmentAngle / 2; // Adjust for the thickness of the segments
+    ctx.beginPath();
+    ctx.moveTo(centerX, centerY);
+    ctx.arc(centerX, centerY, centerPieceRadius * 0.85, startAngle, endAngle);
+    ctx.closePath();
+    ctx.fill();
+  }
+  
+  // Draw the inner white circle
+  ctx.beginPath();
+  ctx.arc(centerX, centerY, centerPieceRadius * 0.25, 0, 2 * Math.PI);
+  ctx.fillStyle = 'white';
+  ctx.fill();
+
   ctx.restore();
 }
 
