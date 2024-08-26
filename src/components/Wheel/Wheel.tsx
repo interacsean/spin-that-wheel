@@ -12,17 +12,30 @@ type WheelProps = {
   onSpinStart: () => void;
 };
 
+const arrowImg = new Image();
+arrowImg.src = '/cr-arrow.png';
+
+const wheelBgImg = new Image();
+wheelBgImg.src = '/cr-bg.png';
+
+const flashImg = new Image();
+flashImg.src = '/cr-flash.png';
+const flashImgWidth = flashImg.width;
+const flashImgHeight = flashImg.height;
+
 function drawWheel(
   canvasRef: any,
   angle: number,
   items: string[],
   zoom: number = 0,
+  spinning: boolean = false,
 ) {
   const canvas = canvasRef.current;
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
   if (!ctx) return;
 
+  
   const width = canvas.width * WHEEL_CANVAS_RATIO_MAX;
   const height = canvas.height * WHEEL_CANVAS_RATIO_MAX;
   const wheelLeft = (canvas.width - width) / 2;
@@ -41,14 +54,138 @@ function drawWheel(
   ];
 
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  const maxZoomScale = 2; // Arbitrary scale value to zoom in fully to one segment
-  const zoomScale = 1 + zoom * maxZoomScale;
 
+  const zoomedOutScale = 0.95
+  const maxZoomScale = 1.9; // Arbitrary scale value to zoom in fully to one segment
+  const zoomScale = zoomedOutScale + zoom * maxZoomScale;
+
+  
   ctx.save();
   ctx.translate(centerX, centerY);
   ctx.scale(zoomScale, zoomScale);
   ctx.translate(-centerX, -centerY);
-  ctx.translate(zoom * -radius / 2, 0);
+  ctx.translate(zoom * -radius * 0.65, 0);
+  
+  const minBgScale = Math.max(
+    canvas.width / wheelBgImg.width, canvas.height / wheelBgImg.height
+  );
+
+  const bgImgWidth = wheelBgImg.width * minBgScale / zoomedOutScale;
+  const bgImgHeight = wheelBgImg.height * minBgScale / zoomedOutScale;
+  const bgImgX = centerX - bgImgWidth / 2
+  const bgImgY = centerY - bgImgHeight / 2
+  if (wheelBgImg.complete) {
+    ctx.drawImage(wheelBgImg, bgImgX, bgImgY, bgImgWidth, bgImgHeight);
+  } else {
+    wheelBgImg.onload = () => {
+      ctx.drawImage(wheelBgImg, bgImgX, bgImgY, bgImgWidth, bgImgHeight);
+    };
+  }
+  const fusciaWidth = 30 + 4;
+  const fusciaDarkWidth = fusciaWidth + 10;
+  const lightGreenInnerWidth = 18 + fusciaDarkWidth;
+  const darkGreenWidth = lightGreenInnerWidth + 60;
+  const lightGreenOuterWidth = darkGreenWidth + 15;
+  const darkBlueWidth =  lightGreenOuterWidth + 8;
+  const lightBlueWidth = darkBlueWidth + 28;
+  const darkBlueOuterWidth = lightBlueWidth + 15;
+
+  ctx.beginPath();
+  ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+  ctx.lineWidth = darkBlueOuterWidth;
+  ctx.strokeStyle = '#304E5B'; // darkish blue
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+  ctx.lineWidth = lightBlueWidth;
+  ctx.strokeStyle = '#3982AA'; // grey blue
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+  ctx.lineWidth = darkBlueWidth;
+  ctx.strokeStyle = '#304E5B'; // darkish blue
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+  ctx.lineWidth = lightGreenOuterWidth;
+  ctx.strokeStyle = '#78EA7B'; // light green
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+  ctx.lineWidth = darkGreenWidth;
+  ctx.strokeStyle = '#5FBB61'; // dark green
+  ctx.stroke();
+
+  const arrowScaleFactor = 0.75; // Adjust the scale factor to your needs (e.g., 0.5 for 50% size)
+  const imgWidth = arrowImg.width * arrowScaleFactor;
+  const imgHeight = arrowImg.height * arrowScaleFactor;
+  const imgX = centerX + radius + imgWidth / 2 - (104 * arrowScaleFactor); // Center the image horizontally
+  const imgY = centerY - imgHeight / 2 - 3; // Center the image vertically
+  if (arrowImg.complete) {
+    ctx.drawImage(arrowImg, imgX, imgY, imgWidth, imgHeight);
+  } else {
+    arrowImg.onload = () => {
+      ctx.drawImage(arrowImg, imgX, imgY, imgWidth, imgHeight);
+    };
+  }
+
+  ctx.beginPath();
+  ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+  ctx.lineWidth = lightGreenInnerWidth;
+  ctx.strokeStyle = '#78EA7B'; // light green
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+  ctx.lineWidth = fusciaDarkWidth;
+  ctx.strokeStyle = '#880033'; // fuscia dark
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+  ctx.lineWidth = fusciaWidth;
+  ctx.strokeStyle = '#cc0088'; // fuscia
+  ctx.stroke();
+
+  // // Scatter white lights around the dark green ring
+  const lightCount = 24; // Number of lights to draw
+  const lightRadius = radius + lightGreenInnerWidth - 16;
+  for (let i = 0; i < lightCount; i++) {
+    if (i === 0) continue;
+    const lightAngle = (i * 2 * Math.PI) / lightCount;
+    const lightX = centerX + lightRadius * Math.cos(lightAngle);
+    const lightY = centerY + lightRadius * Math.sin(lightAngle);
+    ctx.beginPath();
+    ctx.arc(lightX, lightY, 10, 0, 2 * Math.PI);
+    ctx.fillStyle = 'white';
+    ctx.fill();
+
+    const time = Date.now();
+    const FLASHSPEED = 25;
+    const FLASHSIMULTANEOUSTRACKS = 2;
+    const flashIndex = Math.floor(time / FLASHSPEED);
+    const flashRating = ((flashIndex + i) % (lightCount / FLASHSIMULTANEOUSTRACKS)) / (lightCount / FLASHSIMULTANEOUSTRACKS);
+    if (spinning && flashRating > 0.3) {
+      const flashImgX = lightX - flashImgWidth / 2
+      const flashImgY = lightY - flashImgHeight / 2
+      if (flashRating < 0.6) ctx.globalAlpha = 1;
+      else if (flashRating < 0.8) ctx.globalAlpha = 0.7;
+      else if (flashRating <= 1) ctx.globalAlpha = 0.3;
+      else ctx.globalAlpha = 1;
+      if (flashImg.complete) {
+        ctx.drawImage(flashImg, flashImgX, flashImgY, flashImgWidth, flashImgHeight);
+      } else {
+        flashImg.onload = () => {
+          ctx.drawImage(flashImg, flashImgX, flashImgY, flashImgWidth, flashImgHeight);
+        };
+      }
+    }
+    ctx.globalAlpha = 1;
+  }
 
   for (let i = 0; i < segments; i++) {
     const startAngle = angle + i * segmentAngle;
@@ -156,6 +293,7 @@ function drawWheel(
   ctx.restore();
 }
 
+
 function startWheelAnimation(
   canvasRef: Ref<HTMLCanvasElement>,
   angle: number = 0,
@@ -200,7 +338,7 @@ function startWheelAnimation(
           angle = angle + Math.max(0, Math.min(slowdownCutoff, (terminalAngle - angle) * 0.002)) * timeDelta + slowSpinVelocityAbs;
         }
       }
-      drawWheel(canvasRef, angle, items, zoom);
+      drawWheel(canvasRef, angle, items, zoom, spinVelocity > 0);
       requestAnimationFrame(animateSpin);
     } else {
       console.log('calling cb');
@@ -220,8 +358,8 @@ export const Wheel = ({
   const [wheelAngle, setWheelAngle] = useState(0);
   
   const redrawWheel = useCallback((zoom: number = 0) => {
-    drawWheel(canvasRef, wheelAngle, items, zoom);
-  }, [wheelAngle, items]);
+    drawWheel(canvasRef, wheelAngle, items, zoom, spinning);
+  }, [wheelAngle, items, spinning]);
 
   useKeyAction(
     'z',
