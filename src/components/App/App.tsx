@@ -31,6 +31,7 @@ function App() {
   const [state, setState] = useState<WheelStates>(WheelStates.Rest);
   const [screen, setScreen] = useState<Screens>(Screens.Ambient);
   const [audioState, setAudioState] = useState<AudioStates>(AudioStates.Silent);
+  const [audioSrc, setAudioSrc] = useState('benny-hill-1.mp3');
   const { openTab, spotifyTab } = useOpenTab();
 
   useEffect(
@@ -46,6 +47,17 @@ function App() {
     setState(WheelStates.Rest);
   }, []);
 
+  useEffect(
+    function pickRandomTuneOnPlay() {
+      if (audioState === AudioStates.WheelAudio) {
+        const randTrack = Math.ceil(Math.random() * 4);
+        setAudioSrc(`benny-hill-${randTrack}.mp3`);
+        console.log('Setting ', `benny-hill-${randTrack}.mp3`)
+      }
+    },
+    [audioState === AudioStates.WheelAudio]
+  )
+
   const onSpinStart = useCallback(() => {
     // TODO: mute music if playing
   }, []);
@@ -55,6 +67,7 @@ function App() {
     useCallback(
       function playMusic_() {
         if (spotifyTab) {
+          setAudioState(AudioStates.Silent);
           playMusic(spotifyTab);
         }
       },
@@ -77,6 +90,7 @@ function App() {
     '1',
     useCallback(function goToAmbient() {
       setScreen(Screens.Ambient);
+      setAudioState(AudioStates.Silent);
     }, [])
   );
 
@@ -84,6 +98,7 @@ function App() {
     '2',
     useCallback(function goToOnStage() {
       setScreen(Screens.OnStage);
+      setAudioState(AudioStates.Silent);
     }, [])
   );
 
@@ -105,6 +120,7 @@ function App() {
     '4',
     useCallback(function goToOnStage() {
       setScreen(Screens.Social);
+      setAudioState(AudioStates.Silent);
     }, [])
   );
 
@@ -149,7 +165,10 @@ function App() {
 
   return (
     <>
-      <AudioPlayer playing={audioState === AudioStates.WheelAudio} />
+      <AudioPlayer playing={audioSrc === 'benny-hill-1.mp3' && audioState === AudioStates.WheelAudio} src={'benny-hill-1.mp3'}/>
+      <AudioPlayer playing={audioSrc === 'benny-hill-2.mp3' && audioState === AudioStates.WheelAudio} src={'benny-hill-2.mp3'}/>
+      <AudioPlayer playing={audioSrc === 'benny-hill-3.mp3' && audioState === AudioStates.WheelAudio} src={'benny-hill-3.mp3'}/>
+      <AudioPlayer playing={audioSrc === 'benny-hill-4.mp3' && audioState === AudioStates.WheelAudio} src={'benny-hill-4.mp3'}/>
       <div className={getScreenClasses(screen === Screens.Ambient)}>
         <img src="/cr-light.png" style={{ width: '100vw', height: '100vh', objectFit: 'cover' }} />
       </div>

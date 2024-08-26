@@ -212,7 +212,7 @@ function drawWheel(
     ctx.rotate(startAngle + segmentAngle / 2);
     ctx.textAlign = 'center';
     ctx.fillStyle = 'black';
-    const fontSize = 14;
+    const fontSize = 20;
     ctx.font = `${fontSize}px Arial`;
 
     // Custom function to wrap text
@@ -238,13 +238,13 @@ function drawWheel(
       return lines;
     };
 
-    const maxTextWidth = radius * 0.7; // Adjust this value to your desired width
+    const maxTextWidth = radius * 0.78; // Adjust this value to your desired width
     const lines = wrapText(items[i] || '-', maxTextWidth);
     const lineHeight = fontSize * 1.4; // Adjust based on your font size
     const totalTextHeight = (lines.length - 1) * lineHeight;
 
     lines.forEach((line, index) => {
-      ctx.fillText(line, radius * 0.63, -(totalTextHeight / 2) + index * lineHeight);
+      ctx.fillText(line, radius * 0.6, -(totalTextHeight / 2) + index * lineHeight);
     });
 
     ctx.restore();

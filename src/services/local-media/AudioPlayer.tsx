@@ -2,9 +2,10 @@ import React, { useRef, useEffect } from 'react';
 
 type AudioPlayerProps = {
   playing: boolean;
+  src: string;
 }
 
-export const AudioPlayer = ({ playing }: AudioPlayerProps) => {
+export const AudioPlayer = ({ playing, src }: AudioPlayerProps) => {
   const audioRef = useRef<HTMLAudioElement>(null);
 
   const playAudio = () => {
@@ -31,7 +32,7 @@ export const AudioPlayer = ({ playing }: AudioPlayerProps) => {
   }, [playing]);
 
   return (
-    <audio ref={audioRef} src="/bh-01.mp3" preload="auto" />
+    <audio ref={audioRef} src={src} preload="auto" />
   );
 };
 
