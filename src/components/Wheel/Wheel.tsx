@@ -172,10 +172,12 @@ function drawWheel(
     if (spinning && flashRating > 0.3) {
       const flashImgX = lightX - flashImgWidth / 2
       const flashImgY = lightY - flashImgHeight / 2
+      // console.log({ flashRating} )
       if (flashRating < 0.6) ctx.globalAlpha = 1;
       else if (flashRating < 0.8) ctx.globalAlpha = 0.7;
       else if (flashRating <= 1) ctx.globalAlpha = 0.3;
       else ctx.globalAlpha = 1;
+      // console.log( {flashImgComplete: flashImg.complete })
       if (flashImg.complete) {
         ctx.drawImage(flashImg, flashImgX, flashImgY, flashImgWidth, flashImgHeight);
       } else {

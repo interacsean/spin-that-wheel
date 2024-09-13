@@ -31,6 +31,7 @@ function App() {
   const [state, setState] = useState<WheelStates>(WheelStates.Rest);
   const [screen, setScreen] = useState<Screens>(Screens.Ambient);
   const [audioState, setAudioState] = useState<AudioStates>(AudioStates.Silent);
+  const [audioPlayTime, setAudioPlayTime] = useState<number>(Date.now());
   const [audioSrc, setAudioSrc] = useState('benny-hill-1.mp3');
   const { openTab, spotifyTab } = useOpenTab();
 
@@ -55,7 +56,7 @@ function App() {
         console.log('Setting ', `benny-hill-${randTrack}.mp3`)
       }
     },
-    [audioState === AudioStates.WheelAudio]
+    [audioState === AudioStates.WheelAudio, audioPlayTime]
   )
 
   const onSpinStart = useCallback(() => {
@@ -134,8 +135,9 @@ function App() {
   useKeyAction(
     's',
     useCallback(function onSpin() {
-      setState(WheelStates.Spinning);
+      setAudioPlayTime(Date.now());
       setAudioState(AudioStates.WheelAudio);
+      setState(WheelStates.Spinning);
     }, [])
   );
 
@@ -165,10 +167,10 @@ function App() {
 
   return (
     <>
-      <AudioPlayer playing={audioSrc === 'benny-hill-1.mp3' && audioState === AudioStates.WheelAudio} src={'benny-hill-1.mp3'}/>
-      <AudioPlayer playing={audioSrc === 'benny-hill-2.mp3' && audioState === AudioStates.WheelAudio} src={'benny-hill-2.mp3'}/>
-      <AudioPlayer playing={audioSrc === 'benny-hill-3.mp3' && audioState === AudioStates.WheelAudio} src={'benny-hill-3.mp3'}/>
-      <AudioPlayer playing={audioSrc === 'benny-hill-4.mp3' && audioState === AudioStates.WheelAudio} src={'benny-hill-4.mp3'}/>
+      <AudioPlayer playing={audioSrc === 'benny-hill-1.mp3' && audioState === AudioStates.WheelAudio} playTime={audioPlayTime} src={'benny-hill-1.mp3'}/>
+      <AudioPlayer playing={audioSrc === 'benny-hill-2.mp3' && audioState === AudioStates.WheelAudio} playTime={audioPlayTime} src={'benny-hill-2.mp3'}/>
+      <AudioPlayer playing={audioSrc === 'benny-hill-3.mp3' && audioState === AudioStates.WheelAudio} playTime={audioPlayTime} src={'benny-hill-3.mp3'}/>
+      <AudioPlayer playing={audioSrc === 'benny-hill-4.mp3' && audioState === AudioStates.WheelAudio} playTime={audioPlayTime} src={'benny-hill-4.mp3'}/>
       <div className={getScreenClasses(screen === Screens.Ambient)}>
         <img src="/cr-light.png" style={{ width: '100vw', height: '100vh', objectFit: 'cover' }} />
       </div>
@@ -188,11 +190,13 @@ function App() {
           />
         )}
       </div>
-      <div className={getScreenClasses(screen === Screens.Settings)}>
-        <h1>Settings</h1>
-        <button onClick={openSpotifyTab}>Open Spotify controlled tab</button>
-        <p>Status: {spotifyTab ? 'Connected!' : 'Pending...'}</p>
-      </div>
+      { screen === Screens.Settings && (
+        <div className={getScreenClasses(screen === Screens.Settings)}>
+          <h1>Settings</h1>
+          <button onClick={openSpotifyTab}>Open Spotify controlled tab</button>
+          <p>Status: {spotifyTab ? 'Connected!' : 'Pending...'}</p>
+        </div>
+      )}
     </>
   );
 }
