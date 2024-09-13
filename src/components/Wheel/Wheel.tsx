@@ -20,8 +20,12 @@ wheelBgImg.src = '/cr-bg.png';
 
 const flashImg = new Image();
 flashImg.src = '/cr-flash.png';
-const flashImgWidth = flashImg.width;
-const flashImgHeight = flashImg.height;
+let flashImgWidth = flashImg.width;
+let flashImgHeight = flashImg.height;
+flashImg.onload = () => {
+  flashImgWidth = flashImg.width;
+  flashImgHeight = flashImg.height;
+}
 
 function drawWheel(
   canvasRef: any,
@@ -169,6 +173,7 @@ function drawWheel(
     const FLASHSIMULTANEOUSTRACKS = 2;
     const flashIndex = Math.floor(time / FLASHSPEED);
     const flashRating = ((flashIndex + i) % (lightCount / FLASHSIMULTANEOUSTRACKS)) / (lightCount / FLASHSIMULTANEOUSTRACKS);
+    console.log({ spinning, flashRating, flashImgWidth, flashImgHeight })
     if (spinning && flashRating > 0.3) {
       const flashImgX = lightX - flashImgWidth / 2
       const flashImgY = lightY - flashImgHeight / 2
@@ -302,6 +307,8 @@ function startWheelAnimation(
   items: string[],
   callback: (angle: number) => void
 ) {
+  console.log({ fic: flashImg.complete });
+
   const slowdownCutoff = 0.0005;
   const spinAccelerationAbs = -0.000005;
   const slowSpinVelocityAbs = 0.0001;
