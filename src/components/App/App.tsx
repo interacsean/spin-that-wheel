@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import './App.css';
+import './font-styles.css';
 import { Wheel } from '../Wheel/Wheel';
 import { useRemoteItems } from '../App/useRemoteItems';
 import { useKeyAction } from '../useKeyAction';
@@ -191,7 +192,7 @@ function App() {
         )}
       </div>
       { screen === Screens.Settings && (
-        <div className={getScreenClasses(screen === Screens.Settings)}>
+        <div className={getScreenClasses(screen === Screens.Settings)} style={{ fontFamily: "hoss round"}}>
           <h1>Settings</h1>
           <button onClick={openSpotifyTab}>Open Spotify controlled tab</button>
           <p>Status: {spotifyTab ? 'Connected!' : 'Pending...'}</p>
