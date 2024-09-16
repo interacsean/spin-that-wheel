@@ -22,7 +22,8 @@ function brighten(hex: string) {
     `${add(48, hex.slice(5, 7))}`.padStart(2, '0')].join('');
 }
 function darken(hex: string, amt: number) {
-  const adjustedAmt = Math.round(amt * 64);
+  const adjustedAmt = Math.round(Math.pow(amt, 2) * 64);
+  // console.log(`aj ${adjustedAmt}`);
   return [hex.slice(0, 1), `${add(-adjustedAmt, hex.slice(1, 3))}`.padStart(2, '0'),
     `${add(-adjustedAmt, hex.slice(3, 5))}`.padStart(2, '0'),
     `${add(-adjustedAmt, hex.slice(5, 7))}`.padStart(2, '0')].join('');
@@ -91,7 +92,11 @@ function drawWheel(
     '#5593AC',
     '#539B3E'
   ];
-  const colors = rainbowColors;
+  const allColors = rainbowColors;
+  const ratioItemsToColors = Math.abs(items.length / allColors.length % 1);
+  const numColors = Math.min(ratioItemsToColors, 1 - ratioItemsToColors) < (2 / allColors.length)
+    ? rainbowColors.length - 4 : rainbowColors.length;
+  const colors = allColors.slice(0, numColors);
 
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -251,8 +256,10 @@ function drawWheel(
       ? colors[i % colors.length]
       : active 
       ? brighten(colors[i % colors.length]) 
-      : darken(colors[i % colors.length], Math.max(0, Math.min(1, 1 - speed * 1000)))
+      : darken(colors[i % colors.length], Math.max(0, Math.min(1, 1 - speed * 300)))
     
+    // console.log(`dk: ${ Math.max(0, Math.min(1, 1 - speed * 300))}`);
+
     // Draw segment
     ctx.beginPath();
     ctx.moveTo(centerX, centerY);
@@ -269,12 +276,19 @@ function drawWheel(
     ctx.stroke();
 
     // Draw text
+    const characters = items[i].length;
+    if (characters > 65) {
+      ctx.font = `${fontSizeAdjusted * 0.78}px "Hoss Round"`;
+    } else if (characters > 50) {
+      ctx.font = `${fontSizeAdjusted * 0.9}px "Hoss Round"`;
+    } else {
+      ctx.font = `${fontSizeAdjusted}px "Hoss Round"`;
+    }
     ctx.save();
     ctx.translate(centerX, centerY);
     ctx.rotate(startAngle + segmentAngle / 2);
     ctx.textAlign = 'center';
     ctx.fillStyle = 'black';
-    ctx.font = `${fontSizeAdjusted}px Arial`;
 
     // Custom function to wrap text
     const wrapText = (text: string, maxWidth: number) => {
@@ -299,10 +313,11 @@ function drawWheel(
       return lines;
     };
 
-    const maxTextWidth = radius * 0.68; // Adjust this value to your desired width
+    const maxTextWidth = radius * 0.68;
     const lines = wrapText(items[i] || '-', maxTextWidth);
-    const lineHeight = fontSizeAdjusted * 1.1; // Adjust based on your font size
-    const totalTextHeight = (lines.length - 1.5) * lineHeight;
+    const yOffset = lines.length === 1 ? -0.3 : lines.length - 1.8
+    const lineHeight = fontSizeAdjusted * 1;
+    const totalTextHeight = yOffset * lineHeight;
 
     lines.forEach((line, index) => {
       ctx.fillText(line, radius * 0.64, -(totalTextHeight / 2) + index * lineHeight);
