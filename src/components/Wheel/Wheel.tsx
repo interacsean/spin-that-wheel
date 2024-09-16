@@ -12,6 +12,16 @@ type WheelProps = {
   onSpinStart: () => void;
 };
 
+function add(toAdd: number, baseNum: string) {
+  return (Math.min(255, parseInt(baseNum, 16) + toAdd)).toString(16)
+}
+
+function brighten(hex: string) {
+  return [hex.slice(0, 1), `${add(48, hex.slice(1, 3))}`.padStart(2, '0'),
+    `${add(48, hex.slice(3, 5))}`.padStart(2, '0'),
+    `${add(48, hex.slice(5, 7))}`.padStart(2, '0')].join('');
+}
+
 const arrowActiveImg = new Image();
 arrowActiveImg.src = '/cr-arrow-active.png';
 
@@ -219,6 +229,11 @@ function drawWheel(
   for (let i = 0; i < segments; i++) {
     const startAngle = angle + i * segmentAngle;
     const endAngle = startAngle + segmentAngle;
+    const active = (endAngle % (2 * Math.PI)) < segmentAngle * 0.9 && (endAngle % (2 * Math.PI)) > segmentAngle * 0.1;
+    if (active) console.log(`Active: ${i}, ${startAngle % (2 * Math.PI)}, ${endAngle % (2 * Math.PI)}`);
+    const segmentColor = !active
+    ? colors[i % colors.length]
+      : brighten(colors[i % colors.length]);
 
     // Draw segment
     ctx.beginPath();
@@ -227,7 +242,7 @@ function drawWheel(
     ctx.closePath();
 
     // Fill the segment with colors matching the screenshot
-    ctx.fillStyle = colors[i % colors.length];
+    ctx.fillStyle = segmentColor;
     ctx.fill();
 
     // Add segment border to match the screenshot
