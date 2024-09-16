@@ -17,12 +17,12 @@ function add(toAdd: number, baseNum: string) {
 }
 
 function brighten(hex: string) {
-  return [hex.slice(0, 1), `${add(48, hex.slice(1, 3))}`.padStart(2, '0'),
-    `${add(48, hex.slice(3, 5))}`.padStart(2, '0'),
-    `${add(48, hex.slice(5, 7))}`.padStart(2, '0')].join('');
+  return [hex.slice(0, 1), `${add(64, hex.slice(1, 3))}`.padStart(2, '0'),
+    `${add(64, hex.slice(3, 5))}`.padStart(2, '0'),
+    `${add(64, hex.slice(5, 7))}`.padStart(2, '0')].join('');
 }
 function darken(hex: string, amt: number) {
-  const adjustedAmt = Math.round(Math.pow(amt, 2) * 64);
+  const adjustedAmt = Math.round(Math.pow(amt, 1.7) * 70);
   // console.log(`aj ${adjustedAmt}`);
   return [hex.slice(0, 1), `${add(-adjustedAmt, hex.slice(1, 3))}`.padStart(2, '0'),
     `${add(-adjustedAmt, hex.slice(3, 5))}`.padStart(2, '0'),
@@ -101,7 +101,7 @@ function drawWheel(
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   const zoomedOutScale = 0.95
-  const maxZoomScale = 1.9; // Arbitrary scale value to zoom in fully to one segment
+  const maxZoomScale = 2.5; // Arbitrary scale value to zoom in fully to one segment
   const zoomScale = zoomedOutScale + zoom * maxZoomScale;
 
   
@@ -109,7 +109,7 @@ function drawWheel(
   ctx.translate(centerX, centerY);
   ctx.scale(zoomScale, zoomScale);
   ctx.translate(-centerX, -centerY);
-  ctx.translate(zoom * -radius * 0.65, 0);
+  ctx.translate(zoom * -radius * 0.70, 0);
   
   const minBgScale = Math.max(
     canvas.width / wheelBgImg.width, canvas.height / wheelBgImg.height
