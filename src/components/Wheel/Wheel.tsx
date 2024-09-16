@@ -12,6 +12,9 @@ type WheelProps = {
   onSpinStart: () => void;
 };
 
+const arrowActiveImg = new Image();
+arrowActiveImg.src = '/cr-arrow-active.png';
+
 const arrowImg = new Image();
 arrowImg.src = '/cr-arrow.png';
 
@@ -51,11 +54,16 @@ function drawWheel(
   const segmentAngle = (2 * Math.PI) / segments;
 
   // Colors that match the screenshot
-  const colors = [
-    '#FFB6C1', '#ADD8E6', '#90EE90', '#FFD700',
-    '#FF69B4', '#87CEEB', '#98FB98', '#FFA07A',
-    '#DB7093', '#AFEEEE', '#EE82EE', '#F0E68C',
+  const oldWheelColors = [
+    '#e03645',
+    '#55bd6e',
+    '#f18847',
+    '#2cb0d1',
+    '#ca80c9',
+    '#ddd467',
   ];
+  const rainbowColors = ['#87BA40', '#F0F551', '#F3C845', '#EB8435', '#E75328', '#E23123', '#B3276A', '#430D76', '#110C76', '#5593AC', '#539B3E'];
+  const colors = rainbowColors;
 
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -129,12 +137,26 @@ function drawWheel(
   const imgHeight = arrowImg.height * arrowScaleFactor;
   const imgX = centerX + radius + imgWidth / 2 - (104 * arrowScaleFactor); // Center the image horizontally
   const imgY = centerY - imgHeight / 2 - 3; // Center the image vertically
-  if (arrowImg.complete) {
-    ctx.drawImage(arrowImg, imgX, imgY, imgWidth, imgHeight);
-  } else {
-    arrowImg.onload = () => {
+  const drawArrowActive = !spinning && (zoom > 0);
+
+  if (drawArrowActive) {
+    console.log(' drawing active');
+    if (arrowActiveImg.complete) {
+      ctx.drawImage(arrowActiveImg, imgX, imgY, imgWidth, imgHeight);
+    } else {
+      arrowActiveImg.onload = () => {
+        ctx.drawImage(arrowActiveImg, imgX, imgY, imgWidth, imgHeight);
+      };
+    }
+  } 
+  if (!drawArrowActive) {
+    if (arrowImg.complete) {
       ctx.drawImage(arrowImg, imgX, imgY, imgWidth, imgHeight);
-    };
+    } else {
+      arrowImg.onload = () => {
+        ctx.drawImage(arrowImg, imgX, imgY, imgWidth, imgHeight);
+      };
+    }
   }
 
   ctx.beginPath();
@@ -173,7 +195,7 @@ function drawWheel(
     const FLASHSIMULTANEOUSTRACKS = 2;
     const flashIndex = Math.floor(time / FLASHSPEED);
     const flashRating = ((flashIndex + i) % (lightCount / FLASHSIMULTANEOUSTRACKS)) / (lightCount / FLASHSIMULTANEOUSTRACKS);
-    console.log({ spinning, flashRating, flashImgWidth, flashImgHeight })
+
     if (spinning && flashRating > 0.3) {
       const flashImgX = lightX - flashImgWidth / 2
       const flashImgY = lightY - flashImgHeight / 2
@@ -350,6 +372,7 @@ function startWheelAnimation(
       drawWheel(canvasRef, angle, items, zoom, spinVelocity > 0);
       requestAnimationFrame(animateSpin);
     } else {
+      drawWheel(canvasRef, angle, items, zoom, false);
       console.log('calling cb');
       callback(angle);
     }
