@@ -13,13 +13,19 @@ type WheelProps = {
 };
 
 function add(toAdd: number, baseNum: string) {
-  return (Math.min(255, parseInt(baseNum, 16) + toAdd)).toString(16)
+  return (Math.max(0, Math.min(255, parseInt(baseNum, 16) + toAdd))).toString(16)
 }
 
 function brighten(hex: string) {
   return [hex.slice(0, 1), `${add(48, hex.slice(1, 3))}`.padStart(2, '0'),
     `${add(48, hex.slice(3, 5))}`.padStart(2, '0'),
     `${add(48, hex.slice(5, 7))}`.padStart(2, '0')].join('');
+}
+function darken(hex: string, amt: number) {
+  const adjustedAmt = Math.round(amt * 64);
+  return [hex.slice(0, 1), `${add(-adjustedAmt, hex.slice(1, 3))}`.padStart(2, '0'),
+    `${add(-adjustedAmt, hex.slice(3, 5))}`.padStart(2, '0'),
+    `${add(-adjustedAmt, hex.slice(5, 7))}`.padStart(2, '0')].join('');
 }
 
 const arrowActiveImg = new Image();
@@ -46,6 +52,7 @@ function drawWheel(
   items: string[],
   zoom: number = 0,
   spinning: boolean = false,
+  speed: number,
 ) {
   const canvas = canvasRef.current;
   if (!canvas) return;
@@ -72,7 +79,18 @@ function drawWheel(
     '#ca80c9',
     '#ddd467',
   ];
-  const rainbowColors = ['#87BA40', '#F0F551', '#F3C845', '#EB8435', '#E75328', '#E23123', '#B3276A', '#430D76', '#110C76', '#5593AC', '#539B3E'];
+  const rainbowColors = ['#87BA40',
+    '#F0F551',
+    '#F3C845',
+    '#EB8435',
+    '#E75328',
+    '#E23123',
+    '#B3276A',
+    '#6A379A', // '#430D76',
+    '#3B36AC', // '#110C76',
+    '#5593AC',
+    '#539B3E'
+  ];
   const colors = rainbowColors;
 
   ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -150,7 +168,6 @@ function drawWheel(
   const drawArrowActive = !spinning && (zoom > 0);
 
   if (drawArrowActive) {
-    console.log(' drawing active');
     if (arrowActiveImg.complete) {
       ctx.drawImage(arrowActiveImg, imgX, imgY, imgWidth, imgHeight);
     } else {
@@ -209,12 +226,10 @@ function drawWheel(
     if (spinning && flashRating > 0.3) {
       const flashImgX = lightX - flashImgWidth / 2
       const flashImgY = lightY - flashImgHeight / 2
-      // console.log({ flashRating} )
       if (flashRating < 0.6) ctx.globalAlpha = 1;
       else if (flashRating < 0.8) ctx.globalAlpha = 0.7;
       else if (flashRating <= 1) ctx.globalAlpha = 0.3;
       else ctx.globalAlpha = 1;
-      // console.log( {flashImgComplete: flashImg.complete })
       if (flashImg.complete) {
         ctx.drawImage(flashImg, flashImgX, flashImgY, flashImgWidth, flashImgHeight);
       } else {
@@ -226,15 +241,18 @@ function drawWheel(
     ctx.globalAlpha = 1;
   }
 
+  const fontSize = 20;
+  const fontSizeAdjusted = fontSize - (5 * Math.min(1, Math.max(0, (segments - 10) / 10)));
   for (let i = 0; i < segments; i++) {
     const startAngle = angle + i * segmentAngle;
     const endAngle = startAngle + segmentAngle;
     const active = (endAngle % (2 * Math.PI)) < segmentAngle * 0.9 && (endAngle % (2 * Math.PI)) > segmentAngle * 0.1;
-    if (active) console.log(`Active: ${i}, ${startAngle % (2 * Math.PI)}, ${endAngle % (2 * Math.PI)}`);
-    const segmentColor = !active
-    ? colors[i % colors.length]
-      : brighten(colors[i % colors.length]);
-
+    const segmentColor = !active && zoom < 1
+      ? colors[i % colors.length]
+      : active 
+      ? brighten(colors[i % colors.length]) 
+      : darken(colors[i % colors.length], Math.max(0, Math.min(1, 1 - speed * 1000)))
+    
     // Draw segment
     ctx.beginPath();
     ctx.moveTo(centerX, centerY);
@@ -256,8 +274,7 @@ function drawWheel(
     ctx.rotate(startAngle + segmentAngle / 2);
     ctx.textAlign = 'center';
     ctx.fillStyle = 'black';
-    const fontSize = 20;
-    ctx.font = `${fontSize}px Arial`;
+    ctx.font = `${fontSizeAdjusted}px Arial`;
 
     // Custom function to wrap text
     const wrapText = (text: string, maxWidth: number) => {
@@ -282,13 +299,13 @@ function drawWheel(
       return lines;
     };
 
-    const maxTextWidth = radius * 0.78; // Adjust this value to your desired width
+    const maxTextWidth = radius * 0.68; // Adjust this value to your desired width
     const lines = wrapText(items[i] || '-', maxTextWidth);
-    const lineHeight = fontSize * 1.4; // Adjust based on your font size
-    const totalTextHeight = (lines.length - 1) * lineHeight;
+    const lineHeight = fontSizeAdjusted * 1.1; // Adjust based on your font size
+    const totalTextHeight = (lines.length - 1.5) * lineHeight;
 
     lines.forEach((line, index) => {
-      ctx.fillText(line, radius * 0.6, -(totalTextHeight / 2) + index * lineHeight);
+      ctx.fillText(line, radius * 0.64, -(totalTextHeight / 2) + index * lineHeight);
     });
 
     ctx.restore();
@@ -344,8 +361,6 @@ function startWheelAnimation(
   items: string[],
   callback: (angle: number) => void
 ) {
-  console.log({ fic: flashImg.complete });
-
   const slowdownCutoff = 0.0005;
   const spinAccelerationAbs = -0.000005;
   const slowSpinVelocityAbs = 0.0001;
@@ -364,6 +379,7 @@ function startWheelAnimation(
         // TODO: work on zoom rate and velocity cutoffs, and some easing.  Maybe as a sine ratio of some velocity
         zoom = Math.min(1, zoom + (0.5) * timeDelta/1000);
       }
+      let roughSpeed = spinVelocity;
       if (spinVelocity > slowdownCutoff) {
         const angleMoved = spinVelocity * timeDelta;
         angle = angle + angleMoved;
@@ -377,17 +393,19 @@ function startWheelAnimation(
           terminalAngle = Math.round(angle / segmentWedgeAngle) * segmentWedgeAngle + (0.5 * segmentWedgeAngle);
         }
         if (angle > terminalAngle) {
+          roughSpeed = 0;
           angle = terminalAngle;
           spinVelocity = 0;
           console.log('hit terminal')
         } else {
+          roughSpeed = Math.max(0, Math.min(slowdownCutoff, (terminalAngle - angle) * 0.002))
           angle = angle + Math.max(0, Math.min(slowdownCutoff, (terminalAngle - angle) * 0.002)) * timeDelta + slowSpinVelocityAbs;
         }
       }
-      drawWheel(canvasRef, angle, items, zoom, spinVelocity > 0);
+      drawWheel(canvasRef, angle, items, zoom, spinVelocity > 0, roughSpeed);
       requestAnimationFrame(animateSpin);
     } else {
-      drawWheel(canvasRef, angle, items, zoom, false);
+      drawWheel(canvasRef, angle, items, zoom, false, 0);
       console.log('calling cb');
       callback(angle);
     }
@@ -405,7 +423,7 @@ export const Wheel = ({
   const [wheelAngle, setWheelAngle] = useState(0);
   
   const redrawWheel = useCallback((zoom: number = 0) => {
-    drawWheel(canvasRef, wheelAngle, items, zoom, spinning);
+    drawWheel(canvasRef, wheelAngle, items, zoom, spinning, 0);
   }, [wheelAngle, items, spinning]);
 
   useKeyAction(
