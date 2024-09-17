@@ -1,7 +1,7 @@
 @font-face {
     font-family: 'Hoss Round';
-    src: url('HossRound-Regular.woff2') format('woff2'),
-        url('HossRound-Regular.woff') format('woff');
+    src: url('/HossRound-Regular.woff2') format('woff2'),
+        url('/HossRound-Regular.woff') format('woff');
     font-weight: normal;
     font-style: normal;
     font-display: swap;
@@ -9,8 +9,8 @@
 
 @font-face {
     font-family: 'Hoss Round';
-    src: url('HossRound-Medium.woff2') format('woff2'),
-        url('HossRound-Medium.woff') format('woff');
+    src: url('/HossRound-Medium.woff2') format('woff2'),
+        url('/HossRound-Medium.woff') format('woff');
     font-weight: 500;
     font-style: normal;
     font-display: swap;
@@ -18,8 +18,8 @@
 
 @font-face {
     font-family: 'Hoss Round';
-    src: url('HossRound-Bold.woff2') format('woff2'),
-        url('HossRound-Bold.woff') format('woff');
+    src: url('/HossRound-Bold.woff2') format('woff2'),
+        url('/HossRound-Bold.woff') format('woff');
     font-weight: 600;
     font-style: normal;
     font-display: swap;

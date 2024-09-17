@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import { useRef, useEffect } from 'react';
 
 type AudioPlayerProps = {
   playing: boolean;
@@ -13,9 +13,9 @@ export const AudioPlayer = ({ playing, playTime, src }: AudioPlayerProps) => {
     audioRef?.current?.play();
   };
 
-  const pauseAudio = () => {
-    audioRef?.current?.pause();
-  };
+  // const pauseAudio = () => {
+  //   audioRef?.current?.pause();
+  // };
 
   const stopAudio = () => {
     audioRef?.current?.pause();

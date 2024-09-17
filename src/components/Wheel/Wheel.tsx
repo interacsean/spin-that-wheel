@@ -72,14 +72,14 @@ function drawWheel(
   const segmentAngle = (2 * Math.PI) / segments;
 
   // Colors that match the screenshot
-  const oldWheelColors = [
-    '#e03645',
-    '#55bd6e',
-    '#f18847',
-    '#2cb0d1',
-    '#ca80c9',
-    '#ddd467',
-  ];
+  // const oldWheelColors = [
+  //   '#e03645',
+  //   '#55bd6e',
+  //   '#f18847',
+  //   '#2cb0d1',
+  //   '#ca80c9',
+  //   '#ddd467',
+  // ];
   const rainbowColors = ['#87BA40',
     '#F0F551',
     '#F3C845',
