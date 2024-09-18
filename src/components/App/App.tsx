@@ -52,7 +52,7 @@ function App() {
   useEffect(
     function pickRandomTuneOnPlay() {
       if (audioState === AudioStates.WheelAudio) {
-        const randTrack = Math.ceil(Math.random() * 4);
+        const randTrack = Math.ceil(Math.random() * 5);
         setAudioSrc(`benny-hill-${randTrack}.mp3`);
         console.log('Setting ', `benny-hill-${randTrack}.mp3`)
       }
@@ -172,6 +172,7 @@ function App() {
       <AudioPlayer playing={audioSrc === 'benny-hill-2.mp3' && audioState === AudioStates.WheelAudio} playTime={audioPlayTime} src={'benny-hill-2.mp3'}/>
       <AudioPlayer playing={audioSrc === 'benny-hill-3.mp3' && audioState === AudioStates.WheelAudio} playTime={audioPlayTime} src={'benny-hill-3.mp3'}/>
       <AudioPlayer playing={audioSrc === 'benny-hill-4.mp3' && audioState === AudioStates.WheelAudio} playTime={audioPlayTime} src={'benny-hill-4.mp3'}/>
+      <AudioPlayer playing={audioSrc === 'benny-hill-5.mp3' && audioState === AudioStates.WheelAudio} playTime={audioPlayTime} src={'benny-hill-5.mp3'}/>
       <div className={getScreenClasses(screen === Screens.Ambient)}>
         <img src="/cr-light.png" style={{ width: '100vw', height: '100vh', objectFit: 'cover' }} />
       </div>

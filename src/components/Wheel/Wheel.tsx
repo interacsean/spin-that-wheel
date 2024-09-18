@@ -87,8 +87,8 @@ function drawWheel(
     '#E75328',
     '#E23123',
     '#B3276A',
-    '#6A379A', // '#430D76',
-    '#3B36AC', // '#110C76',
+    '#8D58C0', // '#430D76',
+    '#5751D3', // '#110C76',
     '#5593AC',
     '#539B3E'
   ];
@@ -104,12 +104,11 @@ function drawWheel(
   const maxZoomScale = 2.5; // Arbitrary scale value to zoom in fully to one segment
   const zoomScale = zoomedOutScale + zoom * maxZoomScale;
 
-  
   ctx.save();
   ctx.translate(centerX, centerY);
   ctx.scale(zoomScale, zoomScale);
   ctx.translate(-centerX, -centerY);
-  ctx.translate(zoom * -radius * 0.70, 0);
+  ctx.translate(zoom * radius * 0.70, 0);
   
   const minBgScale = Math.max(
     canvas.width / wheelBgImg.width, canvas.height / wheelBgImg.height
@@ -168,7 +167,7 @@ function drawWheel(
   const arrowScaleFactor = 0.75; // Adjust the scale factor to your needs (e.g., 0.5 for 50% size)
   const imgWidth = arrowImg.width * arrowScaleFactor;
   const imgHeight = arrowImg.height * arrowScaleFactor;
-  const imgX = centerX + radius + imgWidth / 2 - (104 * arrowScaleFactor); // Center the image horizontally
+  const imgX = centerX - radius - imgWidth / 2 - (180 * arrowScaleFactor); // Center the image horizontally
   const imgY = centerY - imgHeight / 2 - 3; // Center the image vertically
   const drawArrowActive = !spinning && (zoom > 0);
 
@@ -213,7 +212,7 @@ function drawWheel(
   const lightCount = 24; // Number of lights to draw
   const lightRadius = radius + lightGreenInnerWidth - 16;
   for (let i = 0; i < lightCount; i++) {
-    if (i === 0) continue;
+    if (i === lightCount / 2) continue;
     const lightAngle = (i * 2 * Math.PI) / lightCount;
     const lightX = centerX + lightRadius * Math.cos(lightAngle);
     const lightY = centerY + lightRadius * Math.sin(lightAngle);
@@ -263,7 +262,7 @@ function drawWheel(
     // Draw segment
     ctx.beginPath();
     ctx.moveTo(centerX, centerY);
-    ctx.arc(centerX, centerY, radius, startAngle, endAngle);
+    ctx.arc(centerX, centerY, radius, startAngle + Math.PI, endAngle + Math.PI);
     ctx.closePath();
 
     // Fill the segment with colors matching the screenshot
@@ -320,7 +319,7 @@ function drawWheel(
     const totalTextHeight = yOffset * lineHeight;
 
     lines.forEach((line, index) => {
-      ctx.fillText(line, radius * 0.64, -(totalTextHeight / 2) + index * lineHeight);
+      ctx.fillText(line, - (radius * 0.64), -(totalTextHeight / 2) + index * lineHeight);
     });
 
     ctx.restore();
@@ -376,7 +375,7 @@ function startWheelAnimation(
   items: string[],
   callback: (angle: number) => void
 ) {
-  const slowdownCutoff = 0.0005;
+  const slowdownCutoff = 0.0003;
   const spinAccelerationAbs = -0.000005;
   const slowSpinVelocityAbs = 0.0001;
   const spinAccelerationMult = 0.02;
