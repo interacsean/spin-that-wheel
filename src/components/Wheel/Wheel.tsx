@@ -101,7 +101,8 @@ function drawWheel(
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   const zoomedOutScale = 0.95
-  const maxZoomScale = 2.5; // Arbitrary scale value to zoom in fully to one segment
+  // todo: make relative to screen ratio
+  const maxZoomScale = 1; // Arbitrary scale value to zoom in fully to one segment
   const zoomScale = zoomedOutScale + zoom * maxZoomScale;
 
   ctx.save();
@@ -245,7 +246,7 @@ function drawWheel(
     ctx.globalAlpha = 1;
   }
 
-  const fontSize = 20;
+  const fontSize = 17; // todo: make relative to screen size
   const fontSizeAdjusted = fontSize - (5 * Math.min(1, Math.max(0, (segments - 10) / 10)));
   for (let i = 0; i < segments; i++) {
     const startAngle = angle + i * segmentAngle;

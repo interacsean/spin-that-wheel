@@ -177,7 +177,7 @@ function App() {
         <img src="/cr-light.png" style={{ width: '100vw', height: '100vh', objectFit: 'cover' }} />
       </div>
       <div className={getScreenClasses(screen === Screens.OnStage)}>
-        <img src="/cr-dark.png" style={{ width: '100vw', height: '100vh', objectFit: 'cover' }} />
+        <img src="/cr-dark.png" style={{ width: '100vw', height: '90vh', objectFit: 'cover' }} />
       </div>
       <div className={getScreenClasses(screen === Screens.Social)}>
         <img src="/cr-social.png" style={{ width: '100vw', height: '100vh', objectFit: 'cover' }} />
