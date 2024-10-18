@@ -4,7 +4,7 @@ import { useFullScreenCanvas } from './useFullScreenCanvas';
 import { useKeyAction } from '../useKeyAction';
 
 const WHEEL_CANVAS_RATIO_MAX = 0.76;
-const TEXT_TO_WHEEL_RATIO = 1;
+const TEXT_TO_WHEEL_RATIO = 16;
 
 type WheelProps = {
   items: string[];
@@ -23,7 +23,7 @@ function brighten(hex: string) {
     `${add(64, hex.slice(5, 7))}`.padStart(2, '0')].join('');
 }
 function darken(hex: string, amt: number) {
-  const adjustedAmt = Math.round(Math.pow(amt, 1.7) * 70);
+  const adjustedAmt = Math.round(Math.pow(amt, 1.7) * 20);
   // console.log(`aj ${adjustedAmt}`);
   return [hex.slice(0, 1), `${add(-adjustedAmt, hex.slice(1, 3))}`.padStart(2, '0'),
     `${add(-adjustedAmt, hex.slice(3, 5))}`.padStart(2, '0'),
@@ -56,7 +56,6 @@ function drawWheel(
   spinning: boolean = false,
   speed: number,
 ) {
-  zoom = 1;
   const canvas = canvasRef.current;
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
@@ -247,8 +246,9 @@ function drawWheel(
     ctx.globalAlpha = 1;
   }
 
-  const fontSize = wheelRadius / 16; // todo: make relative to screen size
-  const fontSizeAdjusted = fontSize - (5 * Math.min(1, Math.max(0, (segments - 10) / 10)));
+  const FONT_SHRINKABILITY =  (wheelRadius / 100);
+  const fontSize = (wheelRadius / TEXT_TO_WHEEL_RATIO) - FONT_SHRINKABILITY;
+  const fontSizeAdjusted = fontSize - (FONT_SHRINKABILITY * Math.min(1, Math.max(0, (segments - 10) / 10)));
   for (let i = 0; i < segments; i++) {
     const startAngle = angle + i * segmentAngle;
     const endAngle = startAngle + segmentAngle;
@@ -279,16 +279,16 @@ function drawWheel(
     // Draw text
     const characters = items[i].length;
     if (characters > 65) {
-      ctx.font = `${fontSizeAdjusted * 0.78}px "Hoss Round"`;
+      ctx.font = `${fontSizeAdjusted * 0.70}px "Hoss Round"`;
     } else if (characters > 50) {
-      ctx.font = `${fontSizeAdjusted * 0.9}px "Hoss Round"`;
+      ctx.font = `${fontSizeAdjusted * 0.82}px "Hoss Round"`;
     } else {
       ctx.font = `${fontSizeAdjusted}px "Hoss Round"`;
     }
     ctx.save();
     ctx.translate(centerX, centerY);
     ctx.rotate(startAngle + segmentAngle / 2);
-    ctx.textAlign = 'center';
+    ctx.textAlign = 'left';
     ctx.fillStyle = 'black';
 
     // Custom function to wrap text
@@ -316,12 +316,12 @@ function drawWheel(
 
     const maxTextWidth = wheelRadius * 0.68;
     const lines = wrapText(items[i] || '-', maxTextWidth);
-    const yOffset = lines.length === 1 ? -0.3 : lines.length - 1.8
+    const yOffset = lines.length === 1 ? -0.6 : lines.length - 2
     const lineHeight = fontSizeAdjusted * 1;
     const totalTextHeight = yOffset * lineHeight;
 
     lines.forEach((line, index) => {
-      ctx.fillText(line, - (wheelRadius * 0.64), -(totalTextHeight / 2) + index * lineHeight);
+      ctx.fillText(line, - (wheelRadius * 0.97), -(totalTextHeight / 2) + index * lineHeight);
     });
 
     ctx.restore();
