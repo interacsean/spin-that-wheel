@@ -3,7 +3,8 @@ import { calculateChosenItem } from '../Wheel/calculateChosenItem';
 import { useFullScreenCanvas } from './useFullScreenCanvas';
 import { useKeyAction } from '../useKeyAction';
 
-const WHEEL_CANVAS_RATIO_MAX = 0.85;
+const WHEEL_CANVAS_RATIO_MAX = 0.76;
+const TEXT_TO_WHEEL_RATIO = 1;
 
 type WheelProps = {
   items: string[];
@@ -55,19 +56,19 @@ function drawWheel(
   spinning: boolean = false,
   speed: number,
 ) {
+  zoom = 1;
   const canvas = canvasRef.current;
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
   if (!ctx) return;
 
-  
-  const width = canvas.width * WHEEL_CANVAS_RATIO_MAX;
-  const height = canvas.height * WHEEL_CANVAS_RATIO_MAX;
-  const wheelLeft = (canvas.width - width) / 2;
-  const wheelTop = (canvas.height - height) / 2;
-  const centerX = wheelLeft + width / 2;
-  const centerY = wheelTop + height / 2;
-  const radius = Math.min(height, width) / 2;
+  const wheelWidth = canvas.width * WHEEL_CANVAS_RATIO_MAX;
+  const wheelHeight = canvas.height * WHEEL_CANVAS_RATIO_MAX;
+  const wheelLeft = (canvas.width - wheelWidth) / 2;
+  const wheelTop = (canvas.height - wheelHeight) / 2;
+  const centerX = wheelLeft + wheelWidth / 2;
+  const centerY = wheelTop + wheelHeight / 2;
+  const wheelRadius = Math.min(wheelHeight, wheelWidth) / 2;
   const segments = items.length;
   const segmentAngle = (2 * Math.PI) / segments;
 
@@ -102,14 +103,14 @@ function drawWheel(
 
   const zoomedOutScale = 0.95
   // todo: make relative to screen ratio
-  const maxZoomScale = 1; // Arbitrary scale value to zoom in fully to one segment
+  const maxZoomScale = 1.2; // Arbitrary scale value to zoom in fully to one segment
   const zoomScale = zoomedOutScale + zoom * maxZoomScale;
 
   ctx.save();
   ctx.translate(centerX, centerY);
   ctx.scale(zoomScale, zoomScale);
   ctx.translate(-centerX, -centerY);
-  ctx.translate(zoom * radius * 0.70, 0);
+  ctx.translate(zoom * wheelRadius * 0.70, 0);
   
   const minBgScale = Math.max(
     canvas.width / wheelBgImg.width, canvas.height / wheelBgImg.height
@@ -136,39 +137,39 @@ function drawWheel(
   const darkBlueOuterWidth = lightBlueWidth + 15;
 
   ctx.beginPath();
-  ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+  ctx.arc(centerX, centerY, wheelRadius, 0, 2 * Math.PI);
   ctx.lineWidth = darkBlueOuterWidth;
   ctx.strokeStyle = '#304E5B'; // darkish blue
   ctx.stroke();
 
   ctx.beginPath();
-  ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+  ctx.arc(centerX, centerY, wheelRadius, 0, 2 * Math.PI);
   ctx.lineWidth = lightBlueWidth;
   ctx.strokeStyle = '#3982AA'; // grey blue
   ctx.stroke();
 
   ctx.beginPath();
-  ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+  ctx.arc(centerX, centerY, wheelRadius, 0, 2 * Math.PI);
   ctx.lineWidth = darkBlueWidth;
   ctx.strokeStyle = '#304E5B'; // darkish blue
   ctx.stroke();
 
   ctx.beginPath();
-  ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+  ctx.arc(centerX, centerY, wheelRadius, 0, 2 * Math.PI);
   ctx.lineWidth = lightGreenOuterWidth;
   ctx.strokeStyle = '#78EA7B'; // light green
   ctx.stroke();
 
   ctx.beginPath();
-  ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+  ctx.arc(centerX, centerY, wheelRadius, 0, 2 * Math.PI);
   ctx.lineWidth = darkGreenWidth;
   ctx.strokeStyle = '#5FBB61'; // dark green
   ctx.stroke();
 
-  const arrowScaleFactor = 0.75; // Adjust the scale factor to your needs (e.g., 0.5 for 50% size)
+  const arrowScaleFactor = wheelRadius / 313.5 * 0.75; // Adjust the scale factor to your needs (e.g., 0.5 for 50% size)
   const imgWidth = arrowImg.width * arrowScaleFactor;
   const imgHeight = arrowImg.height * arrowScaleFactor;
-  const imgX = centerX - radius - imgWidth / 2 - (180 * arrowScaleFactor); // Center the image horizontally
+  const imgX = centerX - wheelRadius - imgWidth / 2 - (180 * arrowScaleFactor); // Center the image horizontally
   const imgY = centerY - imgHeight / 2 - 3; // Center the image vertically
   const drawArrowActive = !spinning && (zoom > 0);
 
@@ -192,26 +193,26 @@ function drawWheel(
   }
 
   ctx.beginPath();
-  ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+  ctx.arc(centerX, centerY, wheelRadius, 0, 2 * Math.PI);
   ctx.lineWidth = lightGreenInnerWidth;
   ctx.strokeStyle = '#78EA7B'; // light green
   ctx.stroke();
 
   ctx.beginPath();
-  ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+  ctx.arc(centerX, centerY, wheelRadius, 0, 2 * Math.PI);
   ctx.lineWidth = fusciaDarkWidth;
   ctx.strokeStyle = '#880033'; // fuscia dark
   ctx.stroke();
 
   ctx.beginPath();
-  ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+  ctx.arc(centerX, centerY, wheelRadius, 0, 2 * Math.PI);
   ctx.lineWidth = fusciaWidth;
   ctx.strokeStyle = '#cc0088'; // fuscia
   ctx.stroke();
 
   // // Scatter white lights around the dark green ring
   const lightCount = 24; // Number of lights to draw
-  const lightRadius = radius + lightGreenInnerWidth - 16;
+  const lightRadius = wheelRadius + lightGreenInnerWidth - 16;
   for (let i = 0; i < lightCount; i++) {
     if (i === lightCount / 2) continue;
     const lightAngle = (i * 2 * Math.PI) / lightCount;
@@ -246,7 +247,7 @@ function drawWheel(
     ctx.globalAlpha = 1;
   }
 
-  const fontSize = 17; // todo: make relative to screen size
+  const fontSize = wheelRadius / 16; // todo: make relative to screen size
   const fontSizeAdjusted = fontSize - (5 * Math.min(1, Math.max(0, (segments - 10) / 10)));
   for (let i = 0; i < segments; i++) {
     const startAngle = angle + i * segmentAngle;
@@ -263,7 +264,7 @@ function drawWheel(
     // Draw segment
     ctx.beginPath();
     ctx.moveTo(centerX, centerY);
-    ctx.arc(centerX, centerY, radius, startAngle + Math.PI, endAngle + Math.PI);
+    ctx.arc(centerX, centerY, wheelRadius, startAngle + Math.PI, endAngle + Math.PI);
     ctx.closePath();
 
     // Fill the segment with colors matching the screenshot
@@ -313,21 +314,21 @@ function drawWheel(
       return lines;
     };
 
-    const maxTextWidth = radius * 0.68;
+    const maxTextWidth = wheelRadius * 0.68;
     const lines = wrapText(items[i] || '-', maxTextWidth);
     const yOffset = lines.length === 1 ? -0.3 : lines.length - 1.8
     const lineHeight = fontSizeAdjusted * 1;
     const totalTextHeight = yOffset * lineHeight;
 
     lines.forEach((line, index) => {
-      ctx.fillText(line, - (radius * 0.64), -(totalTextHeight / 2) + index * lineHeight);
+      ctx.fillText(line, - (wheelRadius * 0.64), -(totalTextHeight / 2) + index * lineHeight);
     });
 
     ctx.restore();
   }
 
   // Draw the center-piece (white circle with red pie segments)
-  const centerPieceRadius = radius * 0.15; // Adjust the size to match the screenshot
+  const centerPieceRadius = wheelRadius * 0.15; // Adjust the size to match the screenshot
   const pieSegmentCount = 36; // Number of red pie segments in the circle
   const pieSegmentAngle = (2 * Math.PI) / pieSegmentCount;
 
