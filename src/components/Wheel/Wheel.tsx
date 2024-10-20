@@ -126,14 +126,15 @@ function drawWheel(
       ctx.drawImage(wheelBgImg, bgImgX, bgImgY, bgImgWidth, bgImgHeight);
     };
   }
-  const fusciaWidth = 30 + 4;
-  const fusciaDarkWidth = fusciaWidth + 10;
-  const lightGreenInnerWidth = 18 + fusciaDarkWidth;
-  const darkGreenWidth = lightGreenInnerWidth + 60;
-  const lightGreenOuterWidth = darkGreenWidth + 15;
-  const darkBlueWidth =  lightGreenOuterWidth + 8;
-  const lightBlueWidth = darkBlueWidth + 28;
-  const darkBlueOuterWidth = lightBlueWidth + 15;
+  const RINGS_SCREEN_SCALE_RATIO = wheelRadius / 292;
+  const fusciaWidth = (30 + 4) * RINGS_SCREEN_SCALE_RATIO;
+  const fusciaDarkWidth = fusciaWidth + (10 * RINGS_SCREEN_SCALE_RATIO);
+  const lightGreenInnerWidth = (18 * RINGS_SCREEN_SCALE_RATIO) + fusciaDarkWidth;
+  const darkGreenWidth = lightGreenInnerWidth + (60 * RINGS_SCREEN_SCALE_RATIO);
+  const lightGreenOuterWidth = darkGreenWidth + (15 * RINGS_SCREEN_SCALE_RATIO);
+  const darkBlueWidth =  lightGreenOuterWidth + (8 * RINGS_SCREEN_SCALE_RATIO);
+  const lightBlueWidth = darkBlueWidth + (28 * RINGS_SCREEN_SCALE_RATIO);
+  const darkBlueOuterWidth = lightBlueWidth + (15 * RINGS_SCREEN_SCALE_RATIO);
 
   ctx.beginPath();
   ctx.arc(centerX, centerY, wheelRadius, 0, 2 * Math.PI);
@@ -211,14 +212,14 @@ function drawWheel(
 
   // // Scatter white lights around the dark green ring
   const lightCount = 24; // Number of lights to draw
-  const lightRadius = wheelRadius + lightGreenInnerWidth - 16;
+  const lightRadius = wheelRadius + lightGreenInnerWidth - (16 * RINGS_SCREEN_SCALE_RATIO);
   for (let i = 0; i < lightCount; i++) {
     if (i === lightCount / 2) continue;
     const lightAngle = (i * 2 * Math.PI) / lightCount;
     const lightX = centerX + lightRadius * Math.cos(lightAngle);
     const lightY = centerY + lightRadius * Math.sin(lightAngle);
     ctx.beginPath();
-    ctx.arc(lightX, lightY, 10, 0, 2 * Math.PI);
+    ctx.arc(lightX, lightY, 10 * RINGS_SCREEN_SCALE_RATIO, 0, 2 * Math.PI);
     ctx.fillStyle = 'white';
     ctx.fill();
 
