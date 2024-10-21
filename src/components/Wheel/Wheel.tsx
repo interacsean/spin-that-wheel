@@ -3,7 +3,7 @@ import { calculateChosenItem } from '../Wheel/calculateChosenItem';
 import { useFullScreenCanvas } from './useFullScreenCanvas';
 import { useKeyAction } from '../useKeyAction';
 
-const WHEEL_CANVAS_RATIO_MAX = 0.76;
+const WHEEL_CANVAS_RATIO_MAX = 0.65;
 const TEXT_TO_WHEEL_RATIO = 16;
 
 type WheelProps = {
