@@ -4,7 +4,7 @@ import { useFullScreenCanvas } from './useFullScreenCanvas';
 import { useKeyAction } from '../useKeyAction';
 
 const WHEEL_CANVAS_RATIO_MAX = 0.65;
-const TEXT_TO_WHEEL_RATIO = 16;
+const TEXT_TO_WHEEL_RATIO = 16.5;
 
 type WheelProps = {
   items: string[];
@@ -280,11 +280,11 @@ function drawWheel(
     // Draw text
     const characters = items[i].length;
     if (characters > 65) {
-      ctx.font = `${fontSizeAdjusted * 0.70}px "Hoss Round"`;
+      ctx.font = `${fontSizeAdjusted * 0.70}px "Poppins"`;
     } else if (characters > 50) {
-      ctx.font = `${fontSizeAdjusted * 0.82}px "Hoss Round"`;
+      ctx.font = `${fontSizeAdjusted * 0.82}px "Poppins"`;
     } else {
-      ctx.font = `${fontSizeAdjusted}px "Hoss Round"`;
+      ctx.font = `${fontSizeAdjusted}px "Poppins"`;
     }
     ctx.save();
     ctx.translate(centerX, centerY);
