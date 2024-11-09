@@ -42,14 +42,17 @@ const SAMPLE_ITEMS = [
   "Unorthodox methods for selecting comedians to perform at the comedy GALA"
 ];
 
+// const SAMPLE_ITEMS: string[] = [
+// ];
+
 export function useRemoteItems() {
-  const [items, setItems] = useState<string[] | undefined>(undefined);
+  // const [items, setItems] = useState<string[] | undefined>(undefined);
 
-  useEffect(function loadItems() {
-    setTimeout(() => {
-      setItems([...SAMPLE_ITEMS]);
-    }, 500);
-  }, []);
+  // useEffect(function loadItems() {
+  //   setTimeout(() => {
+  //     setItems([...SAMPLE_ITEMS]);
+  //   }, 500);
+  // }, []);
 
-  return items;
+  return SAMPLE_ITEMS;
 }

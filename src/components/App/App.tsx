@@ -177,7 +177,9 @@ function App() {
         <img src="/cr-light.png" style={{ width: '100vw', height: '100vh', objectFit: 'cover' }} />
       </div>
       <div className={getScreenClasses(screen === Screens.OnStage)}>
-        <img src="/cr-dark.png" style={{ width: '100vw', height: '90vh', objectFit: 'cover' }} />
+        <div style={{ width: '100vw', height: '100vh', overflow: 'hidden' }}>
+          <img src="/cr-dark.png" style={{ width: '110vw', height: '110vh', objectFit: 'contain', position: 'relative', top: '-6vh', left: '-5vw' }} />
+        </div>
       </div>
       <div className={getScreenClasses(screen === Screens.Social)}>
         <img src="/cr-social.png" style={{ width: '100vw', height: '100vh', objectFit: 'cover' }} />
@@ -193,7 +195,7 @@ function App() {
         )}
       </div>
       { screen === Screens.Settings && (
-        <div className={getScreenClasses(screen === Screens.Settings)} style={{ fontFamily: "hoss round"}}>
+        <div className={getScreenClasses(screen === Screens.Settings)} style={{ fontFamily: "Poppins"}}>
           <h1>Settings</h1>
           <button onClick={openSpotifyTab}>Open Spotify controlled tab</button>
           <p>Status: {spotifyTab ? 'Connected!' : 'Pending...'}</p>
