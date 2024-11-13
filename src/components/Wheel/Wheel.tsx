@@ -74,7 +74,7 @@ function getRandomizedColors(allColors: string[], numItems: number) {
 
     // Ensure the last color is not the same as the first color
     if (result.length > 1 && result[result.length - 1] === result[0]) {
-        let lastColor = result.pop();
+        result.pop();
         let availableColors = allColors.filter(color => color !== result[0]);
         let newLastColor = availableColors[Math.floor(Math.random() * availableColors.length)];
         result.push(newLastColor);
@@ -324,11 +324,11 @@ function drawWheel(
     // Draw text
     const characters = items[i].length;
     if (characters > 65) {
-      ctx.font = `${fontSizeAdjusted * 0.70}px "Poppins"`;
+      ctx.font = `600 ${fontSizeAdjusted * 0.70}px "Poppins"`;
     } else if (characters > 50) {
-      ctx.font = `${fontSizeAdjusted * 0.82}px "Poppins"`;
+      ctx.font = `600 ${fontSizeAdjusted * 0.82}px "Poppins"`;
     } else {
-      ctx.font = `${fontSizeAdjusted}px "Poppins"`;
+      ctx.font = `600 ${fontSizeAdjusted}px "Poppins"`;
     }
     ctx.save();
     ctx.translate(centerX, centerY);
