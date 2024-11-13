@@ -22,13 +22,13 @@ function brighten(hex: string) {
     `${add(64, hex.slice(3, 5))}`.padStart(2, '0'),
     `${add(64, hex.slice(5, 7))}`.padStart(2, '0')].join('');
 }
-function darken(hex: string, amt: number) {
-  const adjustedAmt = Math.round(Math.pow(amt, 1.7) * 20);
-  // console.log(`aj ${adjustedAmt}`);
-  return [hex.slice(0, 1), `${add(-adjustedAmt, hex.slice(1, 3))}`.padStart(2, '0'),
-    `${add(-adjustedAmt, hex.slice(3, 5))}`.padStart(2, '0'),
-    `${add(-adjustedAmt, hex.slice(5, 7))}`.padStart(2, '0')].join('');
-}
+// function darken(hex: string, amt: number) {
+//   const adjustedAmt = Math.round(Math.pow(amt, 1.7) * 20);
+//   // console.log(`aj ${adjustedAmt}`);
+//   return [hex.slice(0, 1), `${add(-adjustedAmt, hex.slice(1, 3))}`.padStart(2, '0'),
+//     `${add(-adjustedAmt, hex.slice(3, 5))}`.padStart(2, '0'),
+//     `${add(-adjustedAmt, hex.slice(5, 7))}`.padStart(2, '0')].join('');
+// }
 
 const arrowActiveImg = new Image();
 arrowActiveImg.src = '/cr-arrow-active.png';
@@ -48,13 +48,73 @@ flashImg.onload = () => {
   flashImgHeight = flashImg.height;
 }
 
+const RANDOMIZE_COLORS = true;
+function getRandomizedColors(allColors: string[], numItems: number) {
+    if (allColors.length === 0) return [];
+
+    let result = [];
+    let colorSet = [...allColors];
+    let previousColor = null;
+
+    for (let i = 0; i < numItems; i++) {
+        if (colorSet.length === 0) {
+            colorSet = [...allColors];
+        }
+
+        // Ensure the next color is not the same as the previous one
+        let nextColorIndex = Math.floor(Math.random() * colorSet.length);
+        while (colorSet[nextColorIndex] === previousColor) {
+            nextColorIndex = Math.floor(Math.random() * colorSet.length);
+        }
+
+        let nextColor = colorSet.splice(nextColorIndex, 1)[0];
+        result.push(nextColor);
+        previousColor = nextColor;
+    }
+
+    // Ensure the last color is not the same as the first color
+    if (result.length > 1 && result[result.length - 1] === result[0]) {
+        let lastColor = result.pop();
+        let availableColors = allColors.filter(color => color !== result[0]);
+        let newLastColor = availableColors[Math.floor(Math.random() * availableColors.length)];
+        result.push(newLastColor);
+    }
+
+    return result;
+}
+
+
+// Colors that match the screenshot
+// const oldWheelColors = [
+//   '#e03645',
+//   '#55bd6e',
+//   '#f18847',
+//   '#2cb0d1',
+//   '#ca80c9',
+//   '#ddd467',
+// ];
+const rainbowColors = [
+  '#87BA40',
+  '#F0F551',
+  '#F3C845',
+  '#EB8435',
+  '#E75328',
+  '#E23123',
+  // '#B3276A',
+  '#8D28E6', // '#430D76',
+  '#5A52FA', // '#110C76',
+  '#5593AC',
+  '#539B3E'
+];
+const randomColors = getRandomizedColors(rainbowColors, 40);
+
 function drawWheel(
   canvasRef: any,
   angle: number,
   items: string[],
   zoom: number = 0,
   spinning: boolean = false,
-  speed: number,
+  _speed: number,
 ) {
   const canvas = canvasRef.current;
   if (!canvas) return;
@@ -71,32 +131,16 @@ function drawWheel(
   const segments = items.length;
   const segmentAngle = (2 * Math.PI) / segments;
 
-  // Colors that match the screenshot
-  // const oldWheelColors = [
-  //   '#e03645',
-  //   '#55bd6e',
-  //   '#f18847',
-  //   '#2cb0d1',
-  //   '#ca80c9',
-  //   '#ddd467',
-  // ];
-  const rainbowColors = ['#87BA40',
-    '#F0F551',
-    '#F3C845',
-    '#EB8435',
-    '#E75328',
-    '#E23123',
-    '#B3276A',
-    '#8D58C0', // '#430D76',
-    '#5751D3', // '#110C76',
-    '#5593AC',
-    '#539B3E'
-  ];
   const allColors = rainbowColors;
-  const ratioItemsToColors = Math.abs(items.length / allColors.length % 1);
-  const numColors = Math.min(ratioItemsToColors, 1 - ratioItemsToColors) < (2 / allColors.length)
-    ? rainbowColors.length - 4 : rainbowColors.length;
-  const colors = allColors.slice(0, numColors);
+  let colors: string[] = [];
+  if (RANDOMIZE_COLORS) {
+    colors = randomColors;
+  } else {
+    const ratioItemsToColors = Math.abs(items.length / allColors.length % 1);
+    const numColors = Math.min(ratioItemsToColors, 1 - ratioItemsToColors) < (2 / allColors.length)
+      ? rainbowColors.length - 4 : rainbowColors.length;
+    colors = allColors.slice(0, numColors);
+  } 
 
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -258,7 +302,7 @@ function drawWheel(
       ? colors[i % colors.length]
       : active 
       ? brighten(colors[i % colors.length]) 
-      : darken(colors[i % colors.length], Math.max(0, Math.min(1, 1 - speed * 300)))
+      : colors[i % colors.length]; // darken(colors[i % colors.length], Math.max(0, Math.min(1, 1 - speed * 300)))
     
     // console.log(`dk: ${ Math.max(0, Math.min(1, 1 - speed * 300))}`);
 
