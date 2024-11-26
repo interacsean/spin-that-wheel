@@ -2,10 +2,10 @@ import { useCallback, useEffect, useState } from 'react';
 import './App.css';
 import './font-styles.css';
 import { Wheel } from '../Wheel/Wheel';
-import { useRemoteItems } from '../App/useRemoteItems';
 import { useKeyAction } from '../useKeyAction';
 import { useOpenTab, playMusic } from '../../services/music/SpotifyTab';
 import AudioPlayer from '../../services/local-media/AudioPlayer';
+import { DEFAULT_ITEMS } from './defaultItems';
 
 enum WheelStates {
   Spinning,
@@ -26,7 +26,7 @@ enum AudioStates {
 }
 
 function App() {
-  const initialItems = useRemoteItems();
+  const [initialItems, setInitialItems] = useState<string[]>(DEFAULT_ITEMS);
   const [items, setItems] = useState<string[] | undefined>();
   const [currentItem, setCurrentItem] = useState<string | undefined>();
   const [state, setState] = useState<WheelStates>(WheelStates.Rest);
@@ -150,20 +150,24 @@ function App() {
     }, [currentItem])
   );
 
-  useKeyAction(
-    '-',
-    useCallback(
-      function reset() {
-        setItems(initialItems);
-        setState(WheelStates.Rest);
-      },
-      [initialItems]
-    )
-  );
+  const resetItems = useCallback(() => {
+    setItems(initialItems);
+    setState(WheelStates.Rest);
+  }, [initialItems]);
+  useKeyAction('-', resetItems);
 
   const openSpotifyTab = useCallback(
     () => openTab('playlist/58PdBqWcgGV2g11HlEygZU'),
     []
+  );
+  const updateInitialItems = useCallback(
+    (textAreaValue: string) => {
+      setInitialItems(textAreaValue.split('\n')
+        .map(s => s.trim())
+        .filter(s => !!s.length)
+      );
+    },
+    [],
   );
 
   return (
@@ -197,7 +201,13 @@ function App() {
       { screen === Screens.Settings && (
         <div className={getScreenClasses(screen === Screens.Settings)} style={{ fontFamily: "Poppins"}}>
           <h1>Settings</h1>
-          <button onClick={openSpotifyTab}>Open Spotify controlled tab</button>
+          <div>
+            <button onClick={openSpotifyTab}>Open Spotify controlled tab</button>
+          </div>
+          <div>
+            <textarea style={{ width: '50%', minWidth: '30em', minHeight: '50vh' }} onChange={(e) => updateInitialItems(e.target.value)}>{initialItems.join("\n")}</textarea><br/>
+            <button onClick={resetItems}>Reset wheel items</button>
+          </div>
           <p>Status: {spotifyTab ? 'Connected!' : 'Pending...'}</p>
         </div>
       )}
