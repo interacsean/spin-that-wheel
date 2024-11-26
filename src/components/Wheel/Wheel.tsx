@@ -3,7 +3,7 @@ import { calculateChosenItem } from '../Wheel/calculateChosenItem';
 import { useFullScreenCanvas } from './useFullScreenCanvas';
 import { useKeyAction } from '../useKeyAction';
 
-const WHEEL_CANVAS_RATIO_MAX = 0.65;
+const WHEEL_CANVAS_RATIO_MAX = 0.75;
 const TEXT_TO_WHEEL_RATIO = 16.5;
 
 type WheelProps = {
@@ -83,7 +83,6 @@ function getRandomizedColors(allColors: string[], numItems: number) {
     return result;
 }
 
-
 // Colors that match the screenshot
 // const oldWheelColors = [
 //   '#e03645',
@@ -101,8 +100,8 @@ const rainbowColors = [
   '#E75328',
   '#E23123',
   // '#B3276A',
-  '#8D28E6', // '#430D76',
-  '#5A52FA', // '#110C76',
+  '#B75EFF', // '#430D76',
+  '#7871FF', // '#110C76',
   '#5593AC',
   '#539B3E'
 ];
@@ -318,7 +317,7 @@ function drawWheel(
 
     // Add segment border to match the screenshot
     ctx.strokeStyle = 'black'; // Black border to match the screenshot
-    ctx.lineWidth = 3; // Adjust to match the thickness in the screenshot
+    ctx.lineWidth = 1.5; // Adjust to match the thickness in the screenshot
     ctx.stroke();
 
     // Draw text
