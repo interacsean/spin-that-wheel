@@ -6,6 +6,7 @@ import { useKeyAction } from '../useKeyAction';
 import { useOpenTab, playMusic } from '../../services/music/SpotifyTab';
 import AudioPlayer from '../../services/local-media/AudioPlayer';
 import { DEFAULT_ITEMS } from './defaultItems';
+import { useWakeLock } from '../../services/wake-lock/useWakeLock';
 
 enum WheelStates {
   Spinning,
@@ -27,11 +28,12 @@ enum AudioStates {
 }
 
 function App() {
+  useWakeLock();
   const [initialItems, setInitialItems] = useState<string[]>(DEFAULT_ITEMS);
   const [items, setItems] = useState<string[] | undefined>();
   const [currentItem, setCurrentItem] = useState<string | undefined>();
   const [state, setState] = useState<WheelStates>(WheelStates.Rest);
-  const [screen, setScreen] = useState<Screens>(Screens.Ambient);
+  const [screen, setScreen] = useState<Screens>(Screens.Settings);
   const [audioState, setAudioState] = useState<AudioStates>(AudioStates.Silent);
   const [audioPlayTime, setAudioPlayTime] = useState<number>(Date.now());
   const [audioSrc, setAudioSrc] = useState('benny-hill-1.mp3');
@@ -134,22 +136,34 @@ function App() {
     }, [])
   );
 
+  const [ itemToDiscardOnNextSpin, discardItemOnNextSpin ] = useState<string | null>(null); 
   useKeyAction(
     's',
     useCallback(function onSpin() {
+      if (itemToDiscardOnNextSpin) {
+        console.log('discarding ', currentItem);
+        setItems((items) => items?.filter((item) => item !== currentItem));
+        discardItemOnNextSpin(null);
+      }
       setAudioPlayTime(Date.now());
       setAudioState(AudioStates.WheelAudio);
       setState(WheelStates.Spinning);
-    }, [])
+    }, [itemToDiscardOnNextSpin, discardItemOnNextSpin])
   );
 
   useKeyAction(
     'x',
     useCallback(function discardSelectedItem() {
-      console.log('discarding ', currentItem);
-      setItems((items) => items?.filter((item) => item !== currentItem));
+      currentItem && discardItemOnNextSpin(currentItem);
     }, [currentItem])
   );
+  useKeyAction(
+    'k',
+    useCallback(function discardSelectedItem() {
+      discardItemOnNextSpin(null);
+    }, [currentItem])
+  );
+  
 
   const resetItems = useCallback(() => {
     setItems(initialItems);
@@ -203,14 +217,32 @@ function App() {
         )}
       </div>
       { screen === Screens.Settings && (
-        <div className={getScreenClasses(screen === Screens.Settings)} style={{ fontFamily: "Poppins"}}>
+        <div className={getScreenClasses(screen === Screens.Settings)} style={{ fontFamily: "Poppins", alignItems: "center" }}>
           <h1>Settings</h1>
-          <div>
-            <button onClick={openSpotifyTab}>Open Spotify controlled tab</button>
+          <div style={{ display: 'flex', justifyContent: 'center' }}>
+            <div style={{ textAlign: 'left' }}>
+              <strong>Hotkeys</strong>
+              <ul>
+                <li>[\] - This Screen</li>
+                <li>[1] - C.R. Ambient: Pink background</li>
+                <li>[2] - C.R. Ambient: Black background</li>
+                <li>[3] - C.R. Break: Pink 'Like what you love'</li>
+                {/* <li>[4] - C.R. Break: Social QR codes </li> */}
+                <li>[W] - Wheel</li>
+                <li>[S] - Spin wheel</li>
+                <li>[X] - Remove active prompt on next spin</li>
+                <li>[K] - (Keep) Cancel removing active prompt on next spin</li>
+                <li>[Z] - Zoom out (don't remove active prompt)</li>
+                <li>[B] - Stop Benny Hill music (best to fade out on sound-desk first)</li>
+              </ul>
+            </div>
           </div>
+          {/* <div>
+            <button onClick={openSpotifyTab}>Open Spotify controlled tab</button>
+          </div> */}
           <div>
             <textarea style={{ width: '50%', minWidth: '30em', minHeight: '50vh' }} onChange={(e) => updateInitialItems(e.target.value)}>{initialItems.join("\n")}</textarea><br/>
-            <button onClick={resetItems}>Reset wheel items</button>
+            <button onClick={resetItems}>Update wheel items</button>
           </div>
           <p>Status: {spotifyTab ? 'Connected!' : 'Pending...'}</p>
         </div>
