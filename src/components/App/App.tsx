@@ -3,7 +3,6 @@ import './App.css';
 import './font-styles.css';
 import { Wheel } from '../Wheel/Wheel';
 import { useKeyAction } from '../useKeyAction';
-import { useOpenTab, playMusic } from '../../services/music/SpotifyTab';
 import AudioPlayer from '../../services/local-media/AudioPlayer';
 import { DEFAULT_ITEMS } from './defaultItems';
 import { useWakeLock } from '../../services/wake-lock/useWakeLock';
@@ -37,7 +36,6 @@ function App() {
   const [audioState, setAudioState] = useState<AudioStates>(AudioStates.Silent);
   const [audioPlayTime, setAudioPlayTime] = useState<number>(Date.now());
   const [audioSrc, setAudioSrc] = useState('benny-hill-1.mp3');
-  const { openTab, spotifyTab } = useOpenTab();
 
   useEffect(
     function setItemsFromInitial() {
@@ -68,18 +66,6 @@ function App() {
   }, []);
 
   useKeyAction(
-    'p',
-    useCallback(
-      function playMusic_() {
-        if (spotifyTab) {
-          setAudioState(AudioStates.Silent);
-          playMusic(spotifyTab);
-        }
-      },
-      [spotifyTab]
-    )
-  );
-  useKeyAction(
     'b',
     useCallback(
       function playSpinWheelAudio() {
@@ -87,7 +73,7 @@ function App() {
           ? AudioStates.Silent 
           : AudioStates.WheelAudio)
       },
-      [spotifyTab]
+      []
     )
   );
 
@@ -171,10 +157,6 @@ function App() {
   }, [initialItems]);
   useKeyAction('-', resetItems);
 
-  const openSpotifyTab = useCallback(
-    () => openTab('playlist/58PdBqWcgGV2g11HlEygZU'),
-    []
-  );
   const updateInitialItems = useCallback(
     (textAreaValue: string) => {
       setInitialItems(textAreaValue.split('\n')
@@ -237,14 +219,10 @@ function App() {
               </ul>
             </div>
           </div>
-          {/* <div>
-            <button onClick={openSpotifyTab}>Open Spotify controlled tab</button>
-          </div> */}
           <div>
             <textarea style={{ width: '50%', minWidth: '30em', minHeight: '50vh' }} onChange={(e) => updateInitialItems(e.target.value)}>{initialItems.join("\n")}</textarea><br/>
             <button onClick={resetItems}>Update wheel items</button>
           </div>
-          <p>Status: {spotifyTab ? 'Connected!' : 'Pending...'}</p>
         </div>
       )}
     </>
