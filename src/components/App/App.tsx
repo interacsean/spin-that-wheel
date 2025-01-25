@@ -16,6 +16,7 @@ enum Screens {
   Ambient,
   OnStage,
   Social,
+  Break,
   Wheel,
   Settings,
 }
@@ -114,7 +115,7 @@ function App() {
   useKeyAction(
     '3',
     useCallback(function goToOnStage() {
-      setScreen(Screens.Wheel);
+      setScreen(Screens.Break);
     }, [])
   );
 
@@ -184,6 +185,9 @@ function App() {
         <div style={{ width: '100vw', height: '100vh', overflow: 'hidden' }}>
           <img src="/cr-dark.png" style={{ width: '110vw', height: '110vh', objectFit: 'contain', position: 'relative', top: '-6vh', left: '-5vw' }} />
         </div>
+      </div>
+      <div className={getScreenClasses(screen === Screens.Break)}>
+        <img src="/cr-break.png" style={{ width: '100vw', height: '100vh', objectFit: 'cover' }} />
       </div>
       <div className={getScreenClasses(screen === Screens.Social)}>
         <img src="/cr-social.png" style={{ width: '100vw', height: '100vh', objectFit: 'cover' }} />
