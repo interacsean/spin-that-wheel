@@ -15,12 +15,12 @@ jobs:
     steps:
       # Step 1: Checkout the code
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       # Step 2: Set up Node.js
 
       - name: Set up Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 22 # Specify the Node.js version compatible with your project
 
@@ -31,6 +31,9 @@ jobs:
           npm install
           npm run build
           
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
       # Step 4: Upload build artifacts
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
@@ -44,20 +47,23 @@ jobs:
       id-token: write
       contents: read
       pages: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     needs: build
     steps:
       # Step 1: Checkout the code
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
+
       # Step 2: Download build artifacts
-
       - name: Download build artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
-          name: build-artifacts
+            name: build-artifacts
 
-      # Step 3: Deploy to GitHub Pages
+      # Step 4: Deploy to GitHub Pages
       - name: Deploy to GitHub Pages
-        uses: actions/deploy-pages@v2
+        uses: actions/deploy-pages@v4
         with:
           folder: dist # Replace "build" with your output directory if different
