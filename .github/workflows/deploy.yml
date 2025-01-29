@@ -5,6 +5,11 @@ on:
       - main
       - ci
 
+permissions:
+  id-token: write
+  contents: read
+  pages: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -18,14 +23,15 @@ jobs:
         uses: actions/checkout@v4
 
       # Step 2: Set up Node.js
-
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 22 # Specify the Node.js version compatible with your project
 
-      # Step 3: Install dependencies and build the project
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
 
+      # Step 3: Install dependencies and build the project
       - name: Install dependencies and build
         run: |
           npm install
@@ -36,34 +42,22 @@ jobs:
 
       # Step 4: Upload build artifacts
       - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
+        id: deployment
+        uses: actions/upload-pages-artifact@v3
         with:
-          name: build-artifacts
-          path: dist # Replace "build" with your output directory if different
+          path: dist
 
   deploy:
     runs-on: ubuntu-latest
-    permissions:
-      id-token: write
-      contents: read
-      pages: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     needs: build
     steps:
-      # Step 1: Checkout the code
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      # Step 2: Download build artifacts
-      - name: Download build artifacts
-        uses: actions/download-artifact@v4
-        with:
-            name: build-artifacts
-
       # Step 4: Deploy to GitHub Pages
       - name: Deploy to GitHub Pages
+        id: deployment
         uses: actions/deploy-pages@v4
-        with:
-          folder: dist # Replace "build" with your output directory if different
+        # with:
+        #   folder: dist # Replace "build" with your output directory if different
+
