@@ -39,10 +39,10 @@ jobs:
           
       # Step 4: Upload build artifacts
       - name: Upload build artifacts
+        id: deployment
         uses: actions/upload-pages-artifact@v3
         with:
-          name: build-artifacts
-          path: dist # Replace "build" with your output directory if different
+          path: dist
 
   deploy:
     runs-on: ubuntu-latest
@@ -63,6 +63,7 @@ jobs:
 
       # Step 4: Deploy to GitHub Pages
       - name: Deploy to GitHub Pages
+        id: deployment
         uses: actions/deploy-pages@v4
         # with:
         #   folder: dist # Replace "build" with your output directory if different
