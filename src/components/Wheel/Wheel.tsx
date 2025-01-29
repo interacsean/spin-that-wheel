@@ -422,10 +422,10 @@ function startWheelAnimation(
   callback: (angle: number) => void
 ) {
   const slowdownCutoff = 0.0003;
-  const spinAccelerationAbs = -0.000005;
+  const spinAccelerationAbs = -0.000012;
   const slowSpinVelocityAbs = 0.0001;
   const spinAccelerationMult = 0.02;
-  let spinVelocity = 0.01 + (Math.random() * 0.00003);
+  let spinVelocity = 0.005 + (Math.random() * 0.003);
   let terminalAngle: number | undefined = undefined;
   // TODO: introduce way to interjecting with keypress to initiate slowdown
   let lastAnimationTime = performance.now();

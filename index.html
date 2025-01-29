@@ -12,21 +12,6 @@
   <body>
     <!-- <button onclick="openWindow()" style="z-index: 999">open</button> -->
     <div id="root"></div>
-    <!-- <script>
-      let newWindow;
-      function openWindow() {
-        const path = '';
-        newWindow = window.open(`https://open.spotify.com/${path}`);
-
-        const intervalId = setInterval(() => {
-          console.log({ fromNative: newWindow });
-          if (newWindow) {
-            setSpotifyTab(newWindow);
-            clearInterval(intervalId);
-          }
-        }, 250);
-      }
-    </script> -->
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
