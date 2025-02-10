@@ -7,7 +7,7 @@
  * 
  * Run in console:
  * Array.from(document.querySelectorAll('.item-input.js-item-input span')).map(
-    e => e.innerText)
+    e => e.innerText).join("\n")
  */
 const SAMPLE_ITEMS = [
   "Things you don't want to hear from your Airbnb host",

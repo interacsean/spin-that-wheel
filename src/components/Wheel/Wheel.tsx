@@ -421,45 +421,65 @@ function startWheelAnimation(
   items: string[],
   callback: (angle: number) => void
 ) {
-  const slowdownCutoff = 0.0003;
+  const slowdownCutoff = 0.0025;
   const spinAccelerationAbs = -0.000012;
-  const slowSpinVelocityAbs = 0.0001;
-  const spinAccelerationMult = 0.02;
-  let spinVelocity = 0.005 + (Math.random() * 0.003);
+  // const slowSpinVelocityAbs = 0.0001;
+  const spinAccelerationMult = 0.1;
+  const velocityToStartZooming = 0.003;
+  const frictionFreeTime = 850 + Math.random() * 300;
+  const segmentWedgeAngle = (Math.PI * 2 / items.length);
+  // const terminalSegmentEasingPower = 0.5;
+  const zoomInTime = 1;
+  const spinStartTime = Date.now();
+  let timeHitSlowdownCutoff: number | undefined = undefined;
+  let spinVelocity = 0.012 + (Math.random() * 0.01);
   let terminalAngle: number | undefined = undefined;
+  let startAngleToGetToTerminalPosition: number | undefined = undefined;
   // TODO: introduce way to interjecting with keypress to initiate slowdown
   let lastAnimationTime = performance.now();
+  let zoomPercentage = 0;
   let zoom = 0;
 
   const animateSpin: FrameRequestCallback = (time) => {
     const timeDelta = time - lastAnimationTime;
     lastAnimationTime = time;
     if (spinVelocity > 0) {
-      if (spinVelocity < 0.005) {
+      if (spinVelocity < velocityToStartZooming) {
         // TODO: work on zoom rate and velocity cutoffs, and some easing.  Maybe as a sine ratio of some velocity
-        zoom = Math.min(1, zoom + (0.5) * timeDelta/1000);
+        zoomPercentage = Math.min(1, zoomPercentage + timeDelta / (zoomInTime * 1000));
+        zoom = Math.min(1, (Math.cos(Math.PI * (1 - zoomPercentage)) + 1) / 2);
       }
       let roughSpeed = spinVelocity;
-      if (spinVelocity > slowdownCutoff) {
+      const segmentAngleAdjustedSlowdownCutoff = Math.min(Math.PI / (2 * 4), segmentWedgeAngle) * slowdownCutoff;
+      // todo: slowdownCutoff should be relative to size of wedges left
+      if (spinVelocity > segmentAngleAdjustedSlowdownCutoff) {
         const angleMoved = spinVelocity * timeDelta;
         angle = angle + angleMoved;
-        spinVelocity =
-          spinVelocity * (1 - (spinAccelerationMult * timeDelta) / 60) +
-          spinAccelerationAbs;
+        console.log({ time })
+        const friction = Date.now() < spinStartTime + frictionFreeTime ? 1 : (1 - (spinAccelerationMult * timeDelta) / 60) + spinAccelerationAbs 
+        spinVelocity = spinVelocity * friction;
       } else {
-        spinVelocity = slowdownCutoff;
+        spinVelocity = segmentAngleAdjustedSlowdownCutoff;
         if (!terminalAngle) {
-          const segmentWedgeAngle = (Math.PI * 2 / items.length);
+          timeHitSlowdownCutoff = time;
           terminalAngle = Math.round(angle / segmentWedgeAngle) * segmentWedgeAngle + (0.5 * segmentWedgeAngle);
+          startAngleToGetToTerminalPosition = angle;
+          // const timeTimeTilAtCutoffVel = (terminalAngle - angle) / segmentAngleAdjustedSlowdownCutoff;
         }
-        if (angle > terminalAngle) {
+        if (angle < terminalAngle && startAngleToGetToTerminalPosition && timeHitSlowdownCutoff) {
+          const angleToGetToTerminalFromStart = terminalAngle - startAngleToGetToTerminalPosition;
+          const timeToSlowDown = Math.min(1200, 5000 * angleToGetToTerminalFromStart);
+          const timeSinceCutoff = time - timeHitSlowdownCutoff;
+          angle = startAngleToGetToTerminalPosition + (terminalAngle - startAngleToGetToTerminalPosition) * 
+            (Math.sin(Math.PI / 2 * timeSinceCutoff / timeToSlowDown));
+          if (angle > terminalAngle - 0.002) {
+            angle = terminalAngle;
+          }
+        } else {
           roughSpeed = 0;
           angle = terminalAngle;
           spinVelocity = 0;
           console.log('hit terminal')
-        } else {
-          roughSpeed = Math.max(0, Math.min(slowdownCutoff, (terminalAngle - angle) * 0.002))
-          angle = angle + Math.max(0, Math.min(slowdownCutoff, (terminalAngle - angle) * 0.002)) * timeDelta + slowSpinVelocityAbs;
         }
       }
       drawWheel(canvasRef, angle, items, zoom, spinVelocity > 0, roughSpeed);
