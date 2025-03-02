@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import './App.css';
 import './font-styles.css';
 import { Wheel } from '../Wheel/Wheel';
@@ -6,6 +6,9 @@ import { useKeyAction } from '../useKeyAction';
 import AudioPlayer from '../../services/local-media/AudioPlayer';
 import { DEFAULT_ITEMS } from './defaultItems';
 import { useWakeLock } from '../../services/wake-lock/useWakeLock';
+
+const FADE_RATE_MULT = 0.05;
+const FADE_RATE_ABS = 0.003;
 
 enum WheelStates {
   Spinning,
@@ -36,6 +39,8 @@ function App() {
   const [audioState, setAudioState] = useState<AudioStates>(AudioStates.Silent);
   const [audioPlayTime, setAudioPlayTime] = useState<number>(Date.now());
   const [audioSrc, setAudioSrc] = useState('benny-hill-1.mp3');
+  const [fadeVol, setFadeVol] = useState(1);
+  const fadingVolDestination = useRef<false | number>(false);
 
   useEffect(
     function setItemsFromInitial() {
@@ -78,10 +83,67 @@ function App() {
   );
 
   useKeyAction(
+    'f',
+    useCallback(
+      function playSpinWheelAudio() {
+        fadingVolDestination.current = 0;
+        let i: ReturnType<typeof setInterval> | undefined;
+        if (audioState === AudioStates.WheelAudio) {
+          i = setInterval(() => {
+            setFadeVol((v) => {
+              if (fadingVolDestination.current === false) {
+                i && clearInterval(i);
+                return v;
+              }
+              if ((v * (1 - FADE_RATE_MULT)) - FADE_RATE_ABS <= fadingVolDestination.current) {
+                i && clearInterval(i);
+                setAudioState(AudioStates.Silent);
+                return fadingVolDestination.current || 0;
+              }
+              return (v * (1 - FADE_RATE_MULT)) - FADE_RATE_ABS;
+            });
+          }, 1000/24);
+        }
+      },
+      [audioState],
+    )
+  );
+  useKeyAction(
+    'F',
+    useCallback(
+      function playSpinWheelAudio() {
+        fadingVolDestination.current = 0.3;
+        let i: ReturnType<typeof setInterval> | undefined;
+        if (audioState === AudioStates.WheelAudio) {
+          i = setInterval(() => {
+            setFadeVol((v) => {
+              if (fadingVolDestination.current === false) {
+                i && clearInterval(i);
+                return v;
+              }
+              if ((v * (1 - FADE_RATE_MULT)) - FADE_RATE_ABS <= fadingVolDestination.current) {
+                i && clearInterval(i);
+                setAudioState(AudioStates.Silent);
+                fadingVolDestination.current = false;
+                return fadingVolDestination.current || 0;
+              }
+              return (v * (1 - FADE_RATE_MULT)) - FADE_RATE_ABS;
+            });
+          }, 1000/24);
+        }
+      },
+      [audioState],
+    )
+  );
+
+  useKeyAction(
     '1',
     useCallback(function goToAmbient() {
       setScreen(Screens.Ambient);
       setAudioState(AudioStates.Silent);
+      setInterval(() => {
+
+      }, 2000);
     }, [])
   );
 
@@ -131,6 +193,8 @@ function App() {
         setItems((items) => items?.filter((item) => item !== currentItem));
         discardItemOnNextSpin(null);
       }
+      fadingVolDestination.current = false;
+      setFadeVol(1);
       setAudioPlayTime(Date.now());
       setAudioState(AudioStates.WheelAudio);
       setState(WheelStates.Spinning);
@@ -169,11 +233,11 @@ function App() {
 
   return (
     <>
-      <AudioPlayer playing={audioSrc === 'benny-hill-1.mp3' && audioState === AudioStates.WheelAudio} playTime={audioPlayTime} src={'benny-hill-1.mp3'}/>
-      <AudioPlayer playing={audioSrc === 'benny-hill-2.mp3' && audioState === AudioStates.WheelAudio} playTime={audioPlayTime} src={'benny-hill-2.mp3'}/>
-      <AudioPlayer playing={audioSrc === 'benny-hill-3.mp3' && audioState === AudioStates.WheelAudio} playTime={audioPlayTime} src={'benny-hill-3.mp3'}/>
-      <AudioPlayer playing={audioSrc === 'benny-hill-4.mp3' && audioState === AudioStates.WheelAudio} playTime={audioPlayTime} src={'benny-hill-4.mp3'}/>
-      <AudioPlayer playing={audioSrc === 'benny-hill-5.mp3' && audioState === AudioStates.WheelAudio} playTime={audioPlayTime} src={'benny-hill-5.mp3'}/>
+      <AudioPlayer vol={fadeVol} playing={audioSrc === 'benny-hill-1.mp3' && audioState === AudioStates.WheelAudio} playTime={audioPlayTime} src={'benny-hill-1.mp3'}/>
+      <AudioPlayer vol={fadeVol} playing={audioSrc === 'benny-hill-2.mp3' && audioState === AudioStates.WheelAudio} playTime={audioPlayTime} src={'benny-hill-2.mp3'}/>
+      <AudioPlayer vol={fadeVol} playing={audioSrc === 'benny-hill-3.mp3' && audioState === AudioStates.WheelAudio} playTime={audioPlayTime} src={'benny-hill-3.mp3'}/>
+      <AudioPlayer vol={fadeVol} playing={audioSrc === 'benny-hill-4.mp3' && audioState === AudioStates.WheelAudio} playTime={audioPlayTime} src={'benny-hill-4.mp3'}/>
+      <AudioPlayer vol={fadeVol} playing={audioSrc === 'benny-hill-5.mp3' && audioState === AudioStates.WheelAudio} playTime={audioPlayTime} src={'benny-hill-5.mp3'}/>
       <div className={getScreenClasses(screen === Screens.Ambient)}>
         <img src="/cr-light.png" style={{ width: '100vw', height: '100vh', objectFit: 'cover' }} />
       </div>
@@ -215,7 +279,9 @@ function App() {
                 <li>[X] - Remove active prompt on next spin</li>
                 <li>[K] - (Keep) Cancel removing active prompt on next spin</li>
                 <li>[Z] - Zoom out (don't remove active prompt)</li>
-                <li>[B] - Stop Benny Hill music (best to fade out on sound-desk first)</li>
+                <li>[F] - Fade Benny Hill music out</li>
+                <li>Shift + [F] - Lower Benny Hill music volume</li>
+                <li>[B] - Stop Benny Hill music (hard stop)</li>
               </ul>
             </div>
           </div>

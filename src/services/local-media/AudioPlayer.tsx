@@ -4,9 +4,10 @@ type AudioPlayerProps = {
   playing: boolean;
   src: string;
   playTime: number;
+  vol: number;
 }
 
-export const AudioPlayer = ({ playing, playTime, src }: AudioPlayerProps) => {
+export const AudioPlayer = ({ playing, playTime, src, vol }: AudioPlayerProps) => {
   const audioRef = useRef<HTMLAudioElement>(null);
 
   const playAudio = () => {
@@ -24,7 +25,6 @@ export const AudioPlayer = ({ playing, playTime, src }: AudioPlayerProps) => {
   };
 
   useEffect(function togglePlaying() {
-    console.log({ playTime })
     if (playing) {
       if (audioRef.current)
         audioRef.current.currentTime = 0;
@@ -34,8 +34,14 @@ export const AudioPlayer = ({ playing, playTime, src }: AudioPlayerProps) => {
     }
   }, [playing, playTime]);
 
+  useEffect(function updateVolume() {
+    if (audioRef.current && !isNaN(vol)) {
+      audioRef.current.volume = vol;
+    }
+  }, [vol])
+
   return (
-    <audio ref={audioRef} src={src} preload="auto" />
+    <audio ref={audioRef} src={src} preload="auto"  />
   );
 };
 
