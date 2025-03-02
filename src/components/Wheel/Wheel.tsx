@@ -5,6 +5,7 @@ import { useKeyAction } from '../useKeyAction';
 
 const WHEEL_CANVAS_RATIO_MAX = 0.75;
 const TEXT_TO_WHEEL_RATIO = 16.5;
+const TICK_VOLUME = 0.6;
 
 type WheelProps = {
   items: string[];
@@ -414,6 +415,43 @@ function drawWheel(
   ctx.restore();
 }
 
+const audioContext = new (window.AudioContext)();
+let tick100pcAudioBuffer: AudioBuffer;
+let tick100pcAudioBuffer2: AudioBuffer;
+let tick100pcAudioBuffer3: AudioBuffer;
+
+const gainNode = audioContext.createGain();
+gainNode.gain.value = TICK_VOLUME;
+gainNode.connect(audioContext.destination);
+
+
+fetch('/click-100pc.mp3')
+  .then(response => response.arrayBuffer())
+  .then(arrayBuffer => audioContext.decodeAudioData(arrayBuffer))
+  .then(decodedAudio => {
+    tick100pcAudioBuffer = decodedAudio;
+  });
+fetch('/click-100pc2.mp3')
+  .then(response => response.arrayBuffer())
+  .then(arrayBuffer => audioContext.decodeAudioData(arrayBuffer))
+  .then(decodedAudio => {
+    tick100pcAudioBuffer2 = decodedAudio;
+  });
+fetch('/click-100pc3.mp3')
+  .then(response => response.arrayBuffer())
+  .then(arrayBuffer => audioContext.decodeAudioData(arrayBuffer))
+  .then(decodedAudio => {
+    tick100pcAudioBuffer3 = decodedAudio;
+  });
+
+const playTickSound = () => {
+  const source = audioContext.createBufferSource();
+  const sound = [tick100pcAudioBuffer, tick100pcAudioBuffer2, tick100pcAudioBuffer3][Math.floor(Math.random() * 3)];
+  source.buffer = sound;
+  source.connect(gainNode);
+  source.start(0);
+};
+
 
 function startWheelAnimation(
   canvasRef: Ref<HTMLCanvasElement>,
@@ -431,8 +469,11 @@ function startWheelAnimation(
   // const terminalSegmentEasingPower = 0.5;
   const zoomInTime = 1;
   const spinStartTime = Date.now();
+  const minTimeBetweenTickSounds = 50;
   let timeHitSlowdownCutoff: number | undefined = undefined;
   let spinVelocity = 0.012 + (Math.random() * 0.01);
+  let timeSinceLastTickSound = 0;
+  let shouldHaveTickedEarlier = false;
   let terminalAngle: number | undefined = undefined;
   let startAngleToGetToTerminalPosition: number | undefined = undefined;
   // TODO: introduce way to interjecting with keypress to initiate slowdown
@@ -443,6 +484,7 @@ function startWheelAnimation(
   const animateSpin: FrameRequestCallback = (time) => {
     const timeDelta = time - lastAnimationTime;
     lastAnimationTime = time;
+    let startAngle = angle;
     if (spinVelocity > 0) {
       if (spinVelocity < velocityToStartZooming) {
         // TODO: work on zoom rate and velocity cutoffs, and some easing.  Maybe as a sine ratio of some velocity
@@ -450,12 +492,12 @@ function startWheelAnimation(
         zoom = Math.min(1, (Math.cos(Math.PI * (1 - zoomPercentage)) + 1) / 2);
       }
       let roughSpeed = spinVelocity;
+      let angleMoved = -1;
       const segmentAngleAdjustedSlowdownCutoff = Math.min(Math.PI / (2 * 4), segmentWedgeAngle) * slowdownCutoff;
       // todo: slowdownCutoff should be relative to size of wedges left
       if (spinVelocity > segmentAngleAdjustedSlowdownCutoff) {
-        const angleMoved = spinVelocity * timeDelta;
+        angleMoved = spinVelocity * timeDelta;
         angle = angle + angleMoved;
-        console.log({ time })
         const friction = Date.now() < spinStartTime + frictionFreeTime ? 1 : (1 - (spinAccelerationMult * timeDelta) / 60) + spinAccelerationAbs 
         spinVelocity = spinVelocity * friction;
       } else {
@@ -475,14 +517,24 @@ function startWheelAnimation(
           if (angle > terminalAngle - 0.002) {
             angle = terminalAngle;
           }
+          angleMoved = angle - startAngle;
         } else {
           roughSpeed = 0;
           angle = terminalAngle;
+          angleMoved = angle - startAngle;
           spinVelocity = 0;
           console.log('hit terminal')
         }
       }
       drawWheel(canvasRef, angle, items, zoom, spinVelocity > 0, roughSpeed);
+      if (Math.floor(angle / segmentWedgeAngle) > Math.floor(startAngle / segmentWedgeAngle) || shouldHaveTickedEarlier) {
+        shouldHaveTickedEarlier = true;
+        if (timeSinceLastTickSound === 0 || time - timeSinceLastTickSound > minTimeBetweenTickSounds) {
+          playTickSound();
+          timeSinceLastTickSound = time;
+          shouldHaveTickedEarlier = false;
+        }
+      }
       requestAnimationFrame(animateSpin);
     } else {
       drawWheel(canvasRef, angle, items, zoom, false, 0);
