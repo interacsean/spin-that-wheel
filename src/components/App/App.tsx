@@ -142,7 +142,6 @@ function App() {
     useCallback(function goToAmbient() {
       setScreen(Screens.Ambient);
       setAudioState(AudioStates.Silent);
-      setInterval(() => setResetZoomTimestampTrigger(Date.now()), 2000);
     }, [])
   );
 
@@ -151,13 +150,13 @@ function App() {
     useCallback(function goToOnStage() {
       setScreen(Screens.OnStage);
       setAudioState(AudioStates.Silent);
-      setInterval(() => setResetZoomTimestampTrigger(Date.now()), 2000);
     }, [])
   );
 
   useKeyAction(
     'w',
     useCallback(function goToOnStage() {
+      setResetZoomTimestampTrigger(Date.now());
       setScreen(Screens.Wheel);
     }, [])
   );
@@ -166,7 +165,6 @@ function App() {
     '3',
     useCallback(function goToOnStage() {
       setScreen(Screens.Break);
-      setInterval(() => setResetZoomTimestampTrigger(Date.now()), 2000);
     }, [])
   );
 
