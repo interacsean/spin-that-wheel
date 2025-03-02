@@ -12,6 +12,7 @@ type WheelProps = {
   spinning: boolean;
   onSpinComplete: (item: string) => void;
   onSpinStart: () => void;
+  resetZoomTimestampTrigger: number;
 };
 
 function add(toAdd: number, baseNum: string) {
@@ -550,6 +551,7 @@ export const Wheel = ({
   spinning,
   onSpinComplete,
   onSpinStart,
+  resetZoomTimestampTrigger,
 }: WheelProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [wheelAngle, setWheelAngle] = useState(0);
@@ -557,6 +559,10 @@ export const Wheel = ({
   const redrawWheel = useCallback((zoom: number = 0) => {
     drawWheel(canvasRef, wheelAngle, items, zoom, spinning, 0);
   }, [wheelAngle, items, spinning]);
+
+  useEffect(() => {
+    redrawWheel();
+  }, [resetZoomTimestampTrigger]);
 
   useKeyAction(
     'z',

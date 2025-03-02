@@ -39,6 +39,7 @@ function App() {
   const [audioState, setAudioState] = useState<AudioStates>(AudioStates.Silent);
   const [audioPlayTime, setAudioPlayTime] = useState<number>(Date.now());
   const [audioSrc, setAudioSrc] = useState('benny-hill-1.mp3');
+  const [resetZoomTimestampTrigger, setResetZoomTimestampTrigger] = useState<number>(Date.now());;
   const [fadeVol, setFadeVol] = useState(1);
   const fadingVolDestination = useRef<false | number>(false);
 
@@ -141,9 +142,7 @@ function App() {
     useCallback(function goToAmbient() {
       setScreen(Screens.Ambient);
       setAudioState(AudioStates.Silent);
-      setInterval(() => {
-
-      }, 2000);
+      setInterval(() => setResetZoomTimestampTrigger(Date.now()), 2000);
     }, [])
   );
 
@@ -152,6 +151,7 @@ function App() {
     useCallback(function goToOnStage() {
       setScreen(Screens.OnStage);
       setAudioState(AudioStates.Silent);
+      setInterval(() => setResetZoomTimestampTrigger(Date.now()), 2000);
     }, [])
   );
 
@@ -166,6 +166,7 @@ function App() {
     '3',
     useCallback(function goToOnStage() {
       setScreen(Screens.Break);
+      setInterval(() => setResetZoomTimestampTrigger(Date.now()), 2000);
     }, [])
   );
 
@@ -259,6 +260,7 @@ function App() {
             spinning={state === WheelStates.Spinning}
             onSpinStart={onSpinStart}
             onSpinComplete={onSpinComplete}
+            resetZoomTimestampTrigger={resetZoomTimestampTrigger}
           />
         )}
       </div>
