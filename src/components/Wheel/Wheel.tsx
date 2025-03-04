@@ -172,7 +172,8 @@ function drawWheel(
     };
   }
   const RINGS_SCREEN_SCALE_RATIO = wheelRadius / 292;
-  const fusciaWidth = (30 + 4) * RINGS_SCREEN_SCALE_RATIO;
+  const garkGreyOuterSpokeWidth = 12 * RINGS_SCREEN_SCALE_RATIO;
+  const fusciaWidth = garkGreyOuterSpokeWidth + (24) * RINGS_SCREEN_SCALE_RATIO;
   const fusciaDarkWidth = fusciaWidth + (10 * RINGS_SCREEN_SCALE_RATIO);
   const lightGreenInnerWidth = (18 * RINGS_SCREEN_SCALE_RATIO) + fusciaDarkWidth;
   const darkGreenWidth = lightGreenInnerWidth + (60 * RINGS_SCREEN_SCALE_RATIO);
@@ -255,6 +256,12 @@ function drawWheel(
   ctx.strokeStyle = '#cc0088'; // fuscia
   ctx.stroke();
 
+  ctx.beginPath();
+  ctx.arc(centerX, centerY, wheelRadius, 0, 2 * Math.PI);
+  ctx.lineWidth = garkGreyOuterSpokeWidth;
+  ctx.strokeStyle = '#222222'; // fuscia
+  ctx.stroke();
+
   // // Scatter white lights around the dark green ring
   const lightCount = 24; // Number of lights to draw
   const lightRadius = wheelRadius + lightGreenInnerWidth - (16 * RINGS_SCREEN_SCALE_RATIO);
@@ -295,6 +302,7 @@ function drawWheel(
   const FONT_SHRINKABILITY =  (wheelRadius / 100);
   const fontSize = (wheelRadius / TEXT_TO_WHEEL_RATIO) - FONT_SHRINKABILITY;
   const fontSizeAdjusted = fontSize - (FONT_SHRINKABILITY * Math.min(1, Math.max(0, (segments - 10) / 10)));
+  
   for (let i = 0; i < segments; i++) {
     const startAngle = angle + i * segmentAngle;
     const endAngle = startAngle + segmentAngle;
@@ -305,8 +313,6 @@ function drawWheel(
       ? brighten(colors[i % colors.length]) 
       : colors[i % colors.length]; // darken(colors[i % colors.length], Math.max(0, Math.min(1, 1 - speed * 300)))
     
-    // console.log(`dk: ${ Math.max(0, Math.min(1, 1 - speed * 300))}`);
-
     // Draw segment
     ctx.beginPath();
     ctx.moveTo(centerX, centerY);
@@ -317,9 +323,47 @@ function drawWheel(
     ctx.fillStyle = segmentColor;
     ctx.fill();
 
-    // Add segment border to match the screenshot
-    ctx.strokeStyle = 'black'; // Black border to match the screenshot
-    ctx.lineWidth = 1.5; // Adjust to match the thickness in the screenshot
+    // Draw lines along edges of segment that extend past the wheel radius
+    const extensionFactor = 1.03; // Extend lines 2% beyond the wheel radius
+    
+    // Highlight edge line
+    // ctx.beginPath();
+    // ctx.moveTo(centerX, centerY);
+    // const edge2Xhighlight = centerX + Math.cos(endAngle + (1 / (2 * Math.PI)) + Math.PI) * (wheelRadius * extensionFactor);
+    // const edge2Yhighlight = centerY + Math.sin(endAngle + (1 / (2 * Math.PI)) + Math.PI) * (wheelRadius * extensionFactor);
+    // ctx.lineTo(edge2Xhighlight, edge2Yhighlight);
+    // ctx.lineWidth = 5;
+    // ctx.strokeStyle = '#aaaaaa';
+    // ctx.stroke();
+
+    // First edge line
+    ctx.beginPath();
+    ctx.moveTo(centerX, centerY);
+    const edge1X = centerX + Math.cos(startAngle + (0.02 / (2 * Math.PI)) + Math.PI) * (wheelRadius * extensionFactor);
+    const edge1Y = centerY + Math.sin(startAngle + (0.02 / (2 * Math.PI)) + Math.PI) * (wheelRadius * extensionFactor);
+    ctx.lineTo(edge1X, edge1Y);
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = '#999999';
+    ctx.stroke();
+    
+    // First edge line
+    ctx.beginPath();
+    ctx.moveTo(centerX, centerY);
+    const edge2X = centerX + Math.cos(startAngle + Math.PI) * (wheelRadius * extensionFactor);
+    const edge2Y = centerY + Math.sin(startAngle + Math.PI) * (wheelRadius * extensionFactor);
+    ctx.lineTo(edge2X, edge2Y);
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = '#222222';
+    ctx.stroke();
+    
+    // Second edge line
+    ctx.beginPath();
+    ctx.moveTo(centerX, centerY);
+    const edge3X = centerX + Math.cos(endAngle + Math.PI) * (wheelRadius * extensionFactor);
+    const edge3Y = centerY + Math.sin(endAngle + Math.PI) * (wheelRadius * extensionFactor);
+    ctx.lineTo(edge3X, edge3Y);
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = '#222222';
     ctx.stroke();
 
     // Draw text
