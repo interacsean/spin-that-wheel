@@ -375,8 +375,9 @@ function drawWheel(
 
   // Draw the center-piece (white circle with red pie segments)
   const centerPieceRadius = wheelRadius * 0.15; // Adjust the size to match the screenshot
-  const pieSegmentCount = 36; // Number of red pie segments in the circle
-  const pieSegmentAngle = (2 * Math.PI) / pieSegmentCount;
+  const pieSegmentCount = 24; // Number of red pie segments in the circle
+  const pieSegmentAngle = (2 * Math.PI) / pieSegmentCount * 0.7;
+  const pieSegmentAngleSpace = (2 * Math.PI) / pieSegmentCount * 1.3;
 
   // Draw the white circle with stroke and shadow
   ctx.save();
@@ -396,9 +397,9 @@ function drawWheel(
   ctx.restore();
 
   // Draw the red pie segments
-  ctx.fillStyle = '#ffaaaa';
+  ctx.fillStyle = '#E3609D';
   for (let i = 0; i < pieSegmentCount; i++) {
-    const startAngle = i * pieSegmentAngle;
+    const startAngle = i * (pieSegmentAngle + pieSegmentAngleSpace) / 2;
     const endAngle = startAngle + pieSegmentAngle / 2; // Adjust for the thickness of the segments
     ctx.beginPath();
     ctx.moveTo(centerX, centerY);
@@ -409,7 +410,7 @@ function drawWheel(
   
   // Draw the inner white circle
   ctx.beginPath();
-  ctx.arc(centerX, centerY, centerPieceRadius * 0.25, 0, 2 * Math.PI);
+  ctx.arc(centerX, centerY, centerPieceRadius * 0.35, 0, 2 * Math.PI);
   ctx.fillStyle = 'white';
   ctx.fill();
 
