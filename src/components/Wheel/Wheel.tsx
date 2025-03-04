@@ -5,7 +5,7 @@ import { useKeyAction } from '../useKeyAction';
 
 const WHEEL_CANVAS_RATIO_MAX = 0.75;
 const TEXT_TO_WHEEL_RATIO = 16.5;
-const TICK_VOLUME = 0.6;
+const WHEEL_VOLUME = 0.6;
 
 type WheelProps = {
   items: string[];
@@ -417,38 +417,23 @@ function drawWheel(
 }
 
 const audioContext = new (window.AudioContext)();
-let tick100pcAudioBuffer: AudioBuffer;
-let tick100pcAudioBuffer2: AudioBuffer;
-let tick100pcAudioBuffer3: AudioBuffer;
+let wheelSpinAudio: AudioBuffer;
 
 const gainNode = audioContext.createGain();
-gainNode.gain.value = TICK_VOLUME;
+gainNode.gain.value = WHEEL_VOLUME;
 gainNode.connect(audioContext.destination);
 
 
-fetch('/click-100pc.mp3')
+fetch('/wheel-spin-6s.mp3')
   .then(response => response.arrayBuffer())
   .then(arrayBuffer => audioContext.decodeAudioData(arrayBuffer))
   .then(decodedAudio => {
-    tick100pcAudioBuffer = decodedAudio;
-  });
-fetch('/click-100pc2.mp3')
-  .then(response => response.arrayBuffer())
-  .then(arrayBuffer => audioContext.decodeAudioData(arrayBuffer))
-  .then(decodedAudio => {
-    tick100pcAudioBuffer2 = decodedAudio;
-  });
-fetch('/click-100pc3.mp3')
-  .then(response => response.arrayBuffer())
-  .then(arrayBuffer => audioContext.decodeAudioData(arrayBuffer))
-  .then(decodedAudio => {
-    tick100pcAudioBuffer3 = decodedAudio;
+    wheelSpinAudio = decodedAudio;
   });
 
 const playTickSound = () => {
   const source = audioContext.createBufferSource();
-  const sound = [tick100pcAudioBuffer, tick100pcAudioBuffer2, tick100pcAudioBuffer3][Math.floor(Math.random() * 3)];
-  source.buffer = sound;
+  source.buffer = wheelSpinAudio;
   source.connect(gainNode);
   source.start(0);
 };
@@ -465,7 +450,7 @@ function startWheelAnimation(
   // const slowSpinVelocityAbs = 0.0001;
   const spinAccelerationMult = 0.1;
   const velocityToStartZooming = 0.003;
-  const frictionFreeTime = 850 + Math.random() * 300;
+  const frictionFreeTime = 2850 + Math.random() * 200;
   const segmentWedgeAngle = (Math.PI * 2 / items.length);
   // const terminalSegmentEasingPower = 0.5;
   const zoomInTime = 1;
@@ -531,7 +516,7 @@ function startWheelAnimation(
       if (Math.floor(angle / segmentWedgeAngle) > Math.floor(startAngle / segmentWedgeAngle) || shouldHaveTickedEarlier) {
         shouldHaveTickedEarlier = true;
         if (timeSinceLastTickSound === 0 || time - timeSinceLastTickSound > minTimeBetweenTickSounds) {
-          playTickSound();
+          // playTickSound();
           timeSinceLastTickSound = time;
           shouldHaveTickedEarlier = false;
         }
@@ -577,6 +562,7 @@ export const Wheel = ({
 
   const spin = () => {
     onSpinStart();
+    playTickSound();
     startWheelAnimation(canvasRef, wheelAngle, items, (finishingAngle: number) => {
       const selectedItem = calculateChosenItem(items, finishingAngle);
       setWheelAngle(finishingAngle);
