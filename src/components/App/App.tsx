@@ -20,12 +20,14 @@ enum Screens {
   OnStage,
   Social,
   Break,
+  End,
   Wheel,
   Settings,
 }
 
 enum AudioStates {
   WheelAudio,
+  OneOff,
   Silent,
 }
 
@@ -136,6 +138,19 @@ function App() {
       [audioState],
     )
   );
+  
+  useKeyAction(
+    'h',
+    useCallback(function goToAmbient() {;
+      if (audioSrc !== 'hey.mp3') {
+        setAudioSrc('hey.mp3');
+        setAudioState(AudioStates.OneOff);
+        return;
+      }
+      setAudioState(AudioStates.Silent);
+      setAudioSrc('benny-hill-1.mp3');
+    }, [audioSrc])
+  );
 
   useKeyAction(
     '1',
@@ -171,7 +186,7 @@ function App() {
   useKeyAction(
     '4',
     useCallback(function goToOnStage() {
-      setScreen(Screens.Social);
+      setScreen(Screens.End);
       setAudioState(AudioStates.Silent);
     }, [])
   );
@@ -232,6 +247,7 @@ function App() {
 
   return (
     <>
+      <AudioPlayer vol={fadeVol} playing={audioSrc === 'hey.mp3' && audioState === AudioStates.OneOff} playTime={audioPlayTime} src={'hey.mp3'}/>
       <AudioPlayer vol={fadeVol} playing={audioSrc === 'benny-hill-1.mp3' && audioState === AudioStates.WheelAudio} playTime={audioPlayTime} src={'benny-hill-1.mp3'}/>
       <AudioPlayer vol={fadeVol} playing={audioSrc === 'benny-hill-2.mp3' && audioState === AudioStates.WheelAudio} playTime={audioPlayTime} src={'benny-hill-2.mp3'}/>
       <AudioPlayer vol={fadeVol} playing={audioSrc === 'benny-hill-3.mp3' && audioState === AudioStates.WheelAudio} playTime={audioPlayTime} src={'benny-hill-3.mp3'}/>
@@ -250,6 +266,9 @@ function App() {
       </div>
       <div className={getScreenClasses(screen === Screens.Social)}>
         <img src="/cr-social.png" style={{ width: '100vw', height: '100vh', objectFit: 'cover' }} />
+      </div>
+      <div className={getScreenClasses(screen === Screens.End)}>
+        <img src="/cr-end.png" style={{ width: '100vw', height: '100vh', objectFit: 'cover' }} />
       </div>
       <div className={getScreenClasses(screen === Screens.Wheel)}>
         {items?.length && (
