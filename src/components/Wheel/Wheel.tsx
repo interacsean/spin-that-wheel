@@ -324,47 +324,43 @@ function drawWheel(
     ctx.fill();
 
     // Draw lines along edges of segment that extend past the wheel radius
-    const extensionFactor = 1.03; // Extend lines 2% beyond the wheel radius
+    const extensionFactor = 1.03; // Extend lines 3% beyond the wheel radius
     
-    // Highlight edge line
-    // ctx.beginPath();
-    // ctx.moveTo(centerX, centerY);
-    // const edge2Xhighlight = centerX + Math.cos(endAngle + (1 / (2 * Math.PI)) + Math.PI) * (wheelRadius * extensionFactor);
-    // const edge2Yhighlight = centerY + Math.sin(endAngle + (1 / (2 * Math.PI)) + Math.PI) * (wheelRadius * extensionFactor);
-    // ctx.lineTo(edge2Xhighlight, edge2Yhighlight);
-    // ctx.lineWidth = 5;
-    // ctx.strokeStyle = '#aaaaaa';
-    // ctx.stroke();
-
-    // First edge line
-    ctx.beginPath();
-    ctx.moveTo(centerX, centerY);
-    const edge1X = centerX + Math.cos(startAngle + (0.02 / (2 * Math.PI)) + Math.PI) * (wheelRadius * extensionFactor);
-    const edge1Y = centerY + Math.sin(startAngle + (0.02 / (2 * Math.PI)) + Math.PI) * (wheelRadius * extensionFactor);
-    ctx.lineTo(edge1X, edge1Y);
-    ctx.lineWidth = 3;
-    ctx.strokeStyle = '#999999';
-    ctx.stroke();
+    // Define the edge lines to draw with their respective angles and styles
+    const edgeLines = [
+      {
+        angle: startAngle + (0.04 / (2 * Math.PI)) + Math.PI, // Highlight edge line
+        lineWidth: 3,
+        strokeStyle: '#666666'
+      },
+      {
+        angle: startAngle + (0.02 / (2 * Math.PI)) + Math.PI, // Highlight edge line
+        lineWidth: 3,
+        strokeStyle: '#444444'
+      },
+      {
+        angle: startAngle + Math.PI, // First edge line
+        lineWidth: 3,
+        strokeStyle: '#222222'
+      },
+      {
+        angle: endAngle + Math.PI, // Second edge line
+        lineWidth: 3,
+        strokeStyle: '#222222'
+      }
+    ];
     
-    // First edge line
-    ctx.beginPath();
-    ctx.moveTo(centerX, centerY);
-    const edge2X = centerX + Math.cos(startAngle + Math.PI) * (wheelRadius * extensionFactor);
-    const edge2Y = centerY + Math.sin(startAngle + Math.PI) * (wheelRadius * extensionFactor);
-    ctx.lineTo(edge2X, edge2Y);
-    ctx.lineWidth = 3;
-    ctx.strokeStyle = '#222222';
-    ctx.stroke();
-    
-    // Second edge line
-    ctx.beginPath();
-    ctx.moveTo(centerX, centerY);
-    const edge3X = centerX + Math.cos(endAngle + Math.PI) * (wheelRadius * extensionFactor);
-    const edge3Y = centerY + Math.sin(endAngle + Math.PI) * (wheelRadius * extensionFactor);
-    ctx.lineTo(edge3X, edge3Y);
-    ctx.lineWidth = 3;
-    ctx.strokeStyle = '#222222';
-    ctx.stroke();
+    // Draw each edge line
+    edgeLines.forEach(line => {
+      ctx.beginPath();
+      ctx.moveTo(centerX, centerY);
+      const edgeX = centerX + Math.cos(line.angle) * (wheelRadius * extensionFactor);
+      const edgeY = centerY + Math.sin(line.angle) * (wheelRadius * extensionFactor);
+      ctx.lineTo(edgeX, edgeY);
+      ctx.lineWidth = line.lineWidth;
+      ctx.strokeStyle = line.strokeStyle;
+      ctx.stroke();
+    });
 
     // Draw text
     const characters = items[i].length;
