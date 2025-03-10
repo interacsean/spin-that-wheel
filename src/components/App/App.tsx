@@ -91,7 +91,7 @@ function App() {
       function playSpinWheelAudio() {
         fadingVolDestination.current = 0;
         let i: ReturnType<typeof setInterval> | undefined;
-        if (audioState === AudioStates.WheelAudio) {
+        if (audioState === AudioStates.WheelAudio || audioState === AudioStates.OneOff) {
           i = setInterval(() => {
             setFadeVol((v) => {
               if (fadingVolDestination.current === false) {
@@ -138,18 +138,19 @@ function App() {
       [audioState],
     )
   );
-  
+
   useKeyAction(
     'h',
     useCallback(function goToAmbient() {;
-      if (audioSrc !== 'hey.mp3') {
+      if (audioSrc !== 'hey.mp3' || fadeVol < 1) {
+        setFadeVol(1);
         setAudioSrc('hey.mp3');
         setAudioState(AudioStates.OneOff);
         return;
       }
       setAudioState(AudioStates.Silent);
       setAudioSrc('benny-hill-1.mp3');
-    }, [audioSrc])
+    }, [audioSrc, fadeVol])
   );
 
   useKeyAction(
