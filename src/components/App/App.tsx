@@ -45,6 +45,14 @@ function App() {
   const [fadeVol, setFadeVol] = useState(1);
   const fadingVolDestination = useRef<false | number>(false);
 
+  console.log({
+    audioSrc,
+    fadeVol,
+    fadingVolDestination: fadingVolDestination.current,
+    audioState,
+    audioPlayTime,
+  })
+
   useEffect(
     function setItemsFromInitial() {
       if (initialItems?.length && !items?.length) {
@@ -96,13 +104,17 @@ function App() {
             setFadeVol((v) => {
               if (fadingVolDestination.current === false) {
                 i && clearInterval(i);
+                console.log('fvd false');
                 return v;
               }
               if ((v * (1 - FADE_RATE_MULT)) - FADE_RATE_ABS <= fadingVolDestination.current) {
                 i && clearInterval(i);
-                setAudioState(AudioStates.Silent);
+                if (fadingVolDestination.current === 0)
+                  setAudioState(AudioStates.Silent);
+                console.log('lt fvd', v, fadingVolDestination.current);
                 return fadingVolDestination.current || 0;
               }
+              console.log('fading', v, (v * (1 - FADE_RATE_MULT)) - FADE_RATE_ABS);
               return (v * (1 - FADE_RATE_MULT)) - FADE_RATE_ABS;
             });
           }, 1000/24);
@@ -121,15 +133,19 @@ function App() {
           i = setInterval(() => {
             setFadeVol((v) => {
               if (fadingVolDestination.current === false) {
+                console.log('fvd false');
                 i && clearInterval(i);
                 return v;
               }
               if ((v * (1 - FADE_RATE_MULT)) - FADE_RATE_ABS <= fadingVolDestination.current) {
                 i && clearInterval(i);
-                setAudioState(AudioStates.Silent);
+                if (fadingVolDestination.current === 0)
+                  setAudioState(AudioStates.Silent);
                 fadingVolDestination.current = false;
+                console.log('lt fvd', v, fadingVolDestination.current);
                 return fadingVolDestination.current || 0;
               }
+              console.log('fading', v, (v * (1 - FADE_RATE_MULT)) - FADE_RATE_ABS);
               return (v * (1 - FADE_RATE_MULT)) - FADE_RATE_ABS;
             });
           }, 1000/24);
