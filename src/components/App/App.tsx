@@ -4,8 +4,8 @@ import './font-styles.css';
 import { Wheel } from '../Wheel/Wheel';
 import { useKeyAction } from '../useKeyAction';
 import AudioPlayer from '../../services/local-media/AudioPlayer';
-import { DEFAULT_ITEMS } from './defaultItems';
 import { useWakeLock } from '../../services/wake-lock/useWakeLock';
+import { updateRemoteItems, useRemoteItems } from './useRemoteItems';
 
 const FADE_RATE_MULT = 0.05;
 const FADE_RATE_ABS = 0.003;
@@ -33,7 +33,7 @@ enum AudioStates {
 
 function App() {
   useWakeLock();
-  const [initialItems, setInitialItems] = useState<string[]>(DEFAULT_ITEMS);
+  const [initialItems, setInitialItems] = useState<string>();
   const [items, setItems] = useState<string[] | undefined>();
   const [currentItem, setCurrentItem] = useState<string | undefined>();
   const [state, setState] = useState<WheelStates>(WheelStates.Rest);
@@ -44,23 +44,28 @@ function App() {
   const [resetZoomTimestampTrigger, setResetZoomTimestampTrigger] = useState<number>(Date.now());;
   const [fadeVol, setFadeVol] = useState(1);
   const fadingVolDestination = useRef<false | number>(false);
+  const [hotKeysEnabled, setHotKeysEnabled] = useState(true);
+  const enableHotkeys = useCallback(() => setHotKeysEnabled(true), []);
+  const disableHotkeys = useCallback(() => setHotKeysEnabled(false), []);
+  const [itemsInitialised, setItemsInitialised] = useState(false);
 
-  console.log({
-    audioSrc,
-    fadeVol,
-    fadingVolDestination: fadingVolDestination.current,
-    audioState,
-    audioPlayTime,
-  })
+  const remoteItems = useRemoteItems();
 
-  useEffect(
-    function setItemsFromInitial() {
-      if (initialItems?.length && !items?.length) {
-        setItems(initialItems);
-      }
-    },
-    [initialItems]
-  );
+  useEffect(() => {
+    if (remoteItems && !itemsInitialised) {
+      setInitialItems(remoteItems);
+      setItems(remoteItems?.split("\n").map((s) => s.trim()).filter((s) => !!s.length));
+      setItemsInitialised(true);
+    }
+  }, [!!remoteItems, itemsInitialised])
+
+  const setRemoteItemsFromInitial = useCallback(() => {
+    if (initialItems) {
+      console.log('setting items', initialItems);
+      updateRemoteItems(initialItems || '');
+    }
+  }, [initialItems, updateRemoteItems]);
+
   const onSpinComplete = useCallback((selectedItem: string) => {
     setCurrentItem(selectedItem);
     setState(WheelStates.Rest);
@@ -85,11 +90,12 @@ function App() {
     'b',
     useCallback(
       function playSpinWheelAudio() {
+        if (!hotKeysEnabled) return;
         setAudioState((s) => s === AudioStates.WheelAudio 
           ? AudioStates.Silent 
           : AudioStates.WheelAudio)
       },
-      []
+      [hotKeysEnabled]
     )
   );
 
@@ -97,6 +103,7 @@ function App() {
     'f',
     useCallback(
       function playSpinWheelAudio() {
+        if (!hotKeysEnabled) return;
         fadingVolDestination.current = 0;
         let i: ReturnType<typeof setInterval> | undefined;
         if (audioState === AudioStates.WheelAudio || audioState === AudioStates.OneOff) {
@@ -119,13 +126,14 @@ function App() {
           }, 1000/24);
         }
       },
-      [audioState],
+      [audioState, hotKeysEnabled],
     )
   );
   useKeyAction(
     'F',
     useCallback(
       function playSpinWheelAudio() {
+        if (!hotKeysEnabled) return;
         fadingVolDestination.current = 0.3;
         let i: ReturnType<typeof setInterval> | undefined;
         if (audioState === AudioStates.WheelAudio) {
@@ -148,13 +156,14 @@ function App() {
           }, 1000/24);
         }
       },
-      [audioState],
+      [audioState, hotKeysEnabled],
     )
   );
 
   useKeyAction(
     'h',
     useCallback(function goToAmbient() {;
+      if (!hotKeysEnabled) return;
       if (audioSrc !== 'hey.mp3' || fadeVol < 1) {
         setFadeVol(1);
         setAudioSrc('hey.mp3');
@@ -163,59 +172,66 @@ function App() {
       }
       setAudioState(AudioStates.Silent);
       setAudioSrc('benny-hill-1.mp3');
-    }, [audioSrc, fadeVol])
+    }, [audioSrc, fadeVol, hotKeysEnabled])
   );
 
   useKeyAction(
     '1',
     useCallback(function goToAmbient() {
+      if (!hotKeysEnabled) return;
       setScreen(Screens.Ambient);
       setAudioState(AudioStates.Silent);
-    }, [])
+    }, [hotKeysEnabled])
   );
 
   useKeyAction(
     '2',
     useCallback(function goToOnStage() {
+      if (!hotKeysEnabled) return;
       setScreen(Screens.OnStage);
       setAudioState(AudioStates.Silent);
-    }, [])
+    }, [hotKeysEnabled])
   );
 
   useKeyAction(
     'w',
     useCallback(function goToOnStage() {
+      if (!hotKeysEnabled) return;
       setResetZoomTimestampTrigger(Date.now());
       setScreen(Screens.Wheel);
-    }, [])
+    }, [hotKeysEnabled])
   );
 
   useKeyAction(
     '3',
     useCallback(function goToOnStage() {
+      if (!hotKeysEnabled) return;
       setScreen(Screens.Break);
-    }, [])
+    }, [hotKeysEnabled])
   );
 
   useKeyAction(
     '4',
     useCallback(function goToOnStage() {
+      if (!hotKeysEnabled) return;
       setScreen(Screens.End);
       setAudioState(AudioStates.Silent);
-    }, [])
+    }, [hotKeysEnabled])
   );
 
   useKeyAction(
     '\\',
     useCallback(function goToSettings() {
+      if (!hotKeysEnabled) return;
       setScreen(Screens.Settings);
-    }, [])
+    }, [hotKeysEnabled])
   );
 
   const [ itemToDiscardOnNextSpin, discardItemOnNextSpin ] = useState<string | null>(null); 
   useKeyAction(
     's',
     useCallback(function onSpin() {
+      if (!hotKeysEnabled) return;
       if (itemToDiscardOnNextSpin) {
         console.log('discarding ', currentItem);
         setItems((items) => items?.filter((item) => item !== currentItem));
@@ -226,35 +242,37 @@ function App() {
       setAudioPlayTime(Date.now());
       setAudioState(AudioStates.WheelAudio);
       setState(WheelStates.Spinning);
-    }, [itemToDiscardOnNextSpin, discardItemOnNextSpin])
+    }, [itemToDiscardOnNextSpin, discardItemOnNextSpin, hotKeysEnabled])
   );
 
   useKeyAction(
     'x',
     useCallback(function discardSelectedItem() {
+      if (!hotKeysEnabled) return;
       currentItem && discardItemOnNextSpin(currentItem);
-    }, [currentItem])
+    }, [currentItem, hotKeysEnabled])
   );
   useKeyAction(
     'k',
     useCallback(function discardSelectedItem() {
+      if (!hotKeysEnabled) return;
       discardItemOnNextSpin(null);
-    }, [currentItem])
+    }, [currentItem, hotKeysEnabled])
   );
   
-
   const resetItems = useCallback(() => {
-    setItems(initialItems);
+    setItems(initialItems?.split("\n").map((s) => s.trim()).filter((s) => !!s.length));
     setState(WheelStates.Rest);
   }, [initialItems]);
-  useKeyAction('-', resetItems);
+
+  useKeyAction('-', useCallback(function() { 
+    if (!hotKeysEnabled) return;
+    resetItems();
+  }, [hotKeysEnabled]));
 
   const updateInitialItems = useCallback(
     (textAreaValue: string) => {
-      setInitialItems(textAreaValue.split('\n')
-        .map(s => s.trim())
-        .filter(s => !!s.length)
-      );
+      setInitialItems(textAreaValue)
     },
     [],
   );
@@ -297,21 +315,21 @@ function App() {
       </div>
       { screen === Screens.Settings && (
         <div className={getScreenClasses(screen === Screens.Settings)} style={{ fontFamily: "Poppins", alignItems: "center" }}>
-          <h1>Settings</h1>
+          <h1  style={{ fontFamily: "Poppins", fontWeight: 600 }}>Settings</h1>
           <div style={{ display: 'flex', justifyContent: 'center' }}>
             <div style={{ textAlign: 'left' }}>
               <strong>Hotkeys</strong>
               <ul>
                 <li>[\] - This Screen</li>
-                <li>[1] - C.R. Ambient: Pink background</li>
-                <li>[2] - C.R. Ambient: Black background</li>
-                <li>[3] - C.R. Break: Pink 'Like what you love'</li>
-                {/* <li>[4] - C.R. Break: Social QR codes </li> */}
+                <li>[1] - Change screen to Ambient: Pink background</li>
+                <li>[2] - Change screen to Ambient: Black background</li>
+                <li>[3] - Change screen to Break: Pink 'Like what you love'</li>
+                <li>[4] - Change screen to Break: C.R. Break: Social QR codes </li>
                 <li>[W] - Wheel</li>
+                <li>[Z] - Zoom out</li>
                 <li>[S] - Spin wheel</li>
-                <li>[X] - Remove active prompt on next spin</li>
-                <li>[K] - (Keep) Cancel removing active prompt on next spin</li>
-                <li>[Z] - Zoom out (don't remove active prompt)</li>
+                <li>[X] - Remove the selected prompt on next spin</li>
+                <li>[K] - (Keep) Cancel removing selected prompt on next spin</li>
                 <li>[F] - Fade Benny Hill music out</li>
                 <li>Shift + [F] - Lower Benny Hill music volume</li>
                 <li>[B] - Stop Benny Hill music (hard stop)</li>
@@ -319,7 +337,17 @@ function App() {
             </div>
           </div>
           <div>
-            <textarea style={{ width: '50%', minWidth: '30em', minHeight: '50vh' }} onChange={(e) => updateInitialItems(e.target.value)}>{initialItems.join("\n")}</textarea><br/>
+            <textarea
+              style={{ width: '50%', minWidth: '30em', minHeight: '50vh' }}
+              onChange={(e) => updateInitialItems(e.target.value)}
+              onFocus={disableHotkeys}
+              onBlur={() => {
+                enableHotkeys();
+                setRemoteItemsFromInitial();
+              }}
+              value={initialItems}
+            />
+            <br/>
             <button onClick={resetItems}>Update wheel items</button>
           </div>
         </div>
