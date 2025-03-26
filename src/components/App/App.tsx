@@ -272,14 +272,15 @@ function App() {
   );
   
   const resetItems = useCallback(() => {
+    console.log({ initialItems, items })
     setItems(initialItems?.split("\n").map((s) => s.trim()).filter((s) => !!s.length));
     setState(WheelStates.Rest);
-  }, [initialItems]);
+  }, [initialItems, items]);
 
   useKeyAction('_', useCallback(function() { 
     if (!hotKeysEnabled) return;
     resetItems();
-  }, [hotKeysEnabled]));
+  }, [hotKeysEnabled, resetItems]));
 
   const updateInitialItems = useCallback(
     (textAreaValue: string) => {
