@@ -2,18 +2,7 @@
 
 Application for Comedy Roulette live comedy night
 
-The app uses keyboard shortcuts to navigate and control the wheel
- - `1` – Ambient screen
- - `2` – Ambient screen (dark version)
- - `3`/`w` – The wheel
-   - `s` – Spin wheel (auto-plays Benny Hill themesong)
-   - `x` – Discard selected wedge
-   - `z` – Toggle zoom level between focused on selected wedge, or whole wheel
-   - `b` – Toggle Benny Hill themesong
-   - `p` – Play from Spotify Tab*
- - `4` – Ambient screen with social media QR codes
- - `\` – Settings
- - `-` – Reset application state
+The app uses keyboard shortcuts to navigate and control the wheel.  See the Settings page of the app for details
 
 *Playing music from Spotify uses a cross-tab hack...
 
