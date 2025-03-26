@@ -18,6 +18,7 @@ enum WheelStates {
 enum Screens {
   Ambient,
   OnStage,
+  Like,
   Social,
   Break,
   End,
@@ -176,6 +177,15 @@ function App() {
   );
 
   useKeyAction(
+    'w',
+    useCallback(function goToOnStage() {
+      if (!hotKeysEnabled) return;
+      setResetZoomTimestampTrigger(Date.now());
+      setScreen(Screens.Wheel);
+    }, [hotKeysEnabled])
+  );
+
+  useKeyAction(
     '1',
     useCallback(function goToAmbient() {
       if (!hotKeysEnabled) return;
@@ -188,17 +198,8 @@ function App() {
     '2',
     useCallback(function goToOnStage() {
       if (!hotKeysEnabled) return;
-      setScreen(Screens.OnStage);
+      setScreen(Screens.Like);
       setAudioState(AudioStates.Silent);
-    }, [hotKeysEnabled])
-  );
-
-  useKeyAction(
-    'w',
-    useCallback(function goToOnStage() {
-      if (!hotKeysEnabled) return;
-      setResetZoomTimestampTrigger(Date.now());
-      setScreen(Screens.Wheel);
     }, [hotKeysEnabled])
   );
 
@@ -207,6 +208,7 @@ function App() {
     useCallback(function goToOnStage() {
       if (!hotKeysEnabled) return;
       setScreen(Screens.Break);
+      setAudioState(AudioStates.Silent);
     }, [hotKeysEnabled])
   );
 
@@ -215,6 +217,15 @@ function App() {
     useCallback(function goToOnStage() {
       if (!hotKeysEnabled) return;
       setScreen(Screens.End);
+      setAudioState(AudioStates.Silent);
+    }, [hotKeysEnabled])
+  );
+
+  useKeyAction(
+    '5',
+    useCallback(function goToOnStage() {
+      if (!hotKeysEnabled) return;
+      setScreen(Screens.OnStage);
       setAudioState(AudioStates.Silent);
     }, [hotKeysEnabled])
   );
@@ -231,7 +242,7 @@ function App() {
   useKeyAction(
     's',
     useCallback(function onSpin() {
-      if (!hotKeysEnabled) return;
+      if (!hotKeysEnabled || screen !== Screens.Wheel) return;
       if (itemToDiscardOnNextSpin) {
         console.log('discarding ', currentItem);
         setItems((items) => items?.filter((item) => item !== currentItem));
@@ -242,7 +253,7 @@ function App() {
       setAudioPlayTime(Date.now());
       setAudioState(AudioStates.WheelAudio);
       setState(WheelStates.Spinning);
-    }, [itemToDiscardOnNextSpin, discardItemOnNextSpin, hotKeysEnabled])
+    }, [itemToDiscardOnNextSpin, discardItemOnNextSpin, hotKeysEnabled, screen])
   );
 
   useKeyAction(
@@ -265,7 +276,7 @@ function App() {
     setState(WheelStates.Rest);
   }, [initialItems]);
 
-  useKeyAction('-', useCallback(function() { 
+  useKeyAction('_', useCallback(function() { 
     if (!hotKeysEnabled) return;
     resetItems();
   }, [hotKeysEnabled]));
@@ -288,19 +299,22 @@ function App() {
       <div className={getScreenClasses(screen === Screens.Ambient)}>
         <img src="/cr-light.png" style={{ width: '100vw', height: '100vh', objectFit: 'cover' }} />
       </div>
-      <div className={getScreenClasses(screen === Screens.OnStage)}>
-        <div style={{ width: '100vw', height: '100vh', overflow: 'hidden' }}>
-          <img src="/cr-dark.png" style={{ width: '110vw', height: '110vh', objectFit: 'contain', position: 'relative', top: '-6vh', left: '-5vw' }} />
-        </div>
+      <div className={getScreenClasses(screen === Screens.Like)}>
+        <img src="/cr-like.png" style={{ width: '100vw', height: '100vh', objectFit: 'cover' }} />
       </div>
       <div className={getScreenClasses(screen === Screens.Break)}>
         <img src="/cr-break.png" style={{ width: '100vw', height: '100vh', objectFit: 'cover' }} />
       </div>
+      <div className={getScreenClasses(screen === Screens.End)}>
+        <img src="/cr-end.png" style={{ width: '100vw', height: '100vh', objectFit: 'cover' }} />
+      </div>
       <div className={getScreenClasses(screen === Screens.Social)}>
         <img src="/cr-social.png" style={{ width: '100vw', height: '100vh', objectFit: 'cover' }} />
       </div>
-      <div className={getScreenClasses(screen === Screens.End)}>
-        <img src="/cr-end.png" style={{ width: '100vw', height: '100vh', objectFit: 'cover' }} />
+      <div className={getScreenClasses(screen === Screens.OnStage)}>
+        <div style={{ width: '100vw', height: '100vh', overflow: 'hidden' }}>
+          <img src="/cr-dark.png" style={{ width: '110vw', height: '110vh', objectFit: 'contain', position: 'relative', top: '-6vh', left: '-5vw' }} />
+        </div>
       </div>
       <div className={getScreenClasses(screen === Screens.Wheel)}>
         {items?.length && (
@@ -322,17 +336,21 @@ function App() {
               <ul>
                 <li>[\] - This Screen</li>
                 <li>[1] - Change screen to Ambient: Pink background</li>
-                <li>[2] - Change screen to Ambient: Black background</li>
-                <li>[3] - Change screen to Break: Pink 'Like what you love'</li>
-                <li>[4] - Change screen to Break: C.R. Break: Social QR codes </li>
-                <li>[W] - Wheel</li>
-                <li>[Z] - Zoom out</li>
-                <li>[S] - Spin wheel</li>
-                <li>[X] - Remove the selected prompt on next spin</li>
-                <li>[K] - (Keep) Cancel removing selected prompt on next spin</li>
-                <li>[F] - Fade Benny Hill music out</li>
-                <li>Shift + [F] - Lower Benny Hill music volume</li>
-                <li>[B] - Stop Benny Hill music (hard stop)</li>
+                <li>[2] - Change screen to Break: Pink 'Like what you love'</li>
+                <li>[3] - Change screen to Break: Instagram / Google review</li>
+                <li>[4] - Change screen to Break: Donate / Comedy Festival</li>
+                <li>[5] - Change screen to Ambient: Dark background</li>
+                <li>[W] - Wheel screen, then:<ul>
+                  <li>[S] - Spin wheel, then:<ul>
+                    <li>[X] - Remove the selected prompt on next spin</li>
+                    <li>[K] - Keep the selected prompt on next spin (this is the default behaviour, if you don't press X first)</li>
+                  </ul></li>
+                  <li>[Z] - Zoom out</li>
+                  <li>Shift + [F] - Lower Benny Hill music volume</li>
+                  <li>[F] - Fade Benny Hill music out</li>
+                  <li>[B] - Stop Benny Hill music (hard stop)</li>
+                </ul></li>
+                <li>Shift + [-] - Restore all removed wheel segments</li>
               </ul>
             </div>
           </div>

@@ -19,6 +19,7 @@ const assetsList = {
     '/cr-flash.png',
     '/cr-light.png',
     '/cr-social.png',
+    '/cr-like.png',
   ],
   audio: [
     '/benny-hill-1.mp3',
