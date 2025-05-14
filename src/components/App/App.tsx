@@ -198,7 +198,7 @@ function App() {
     '2',
     useCallback(function goToOnStage() {
       if (!hotKeysEnabled) return;
-      setScreen(Screens.Like);
+      setScreen(Screens.OnStage);
       setAudioState(AudioStates.Silent);
     }, [hotKeysEnabled])
   );
@@ -212,23 +212,23 @@ function App() {
     }, [hotKeysEnabled])
   );
 
-  useKeyAction(
-    '4',
-    useCallback(function goToOnStage() {
-      if (!hotKeysEnabled) return;
-      setScreen(Screens.End);
-      setAudioState(AudioStates.Silent);
-    }, [hotKeysEnabled])
-  );
+  // useKeyAction(
+  //   '4',
+  //   useCallback(function goToOnStage() {
+  //     if (!hotKeysEnabled) return;
+  //     setScreen(Screens.End);
+  //     setAudioState(AudioStates.Silent);
+  //   }, [hotKeysEnabled])
+  // );
 
-  useKeyAction(
-    '5',
-    useCallback(function goToOnStage() {
-      if (!hotKeysEnabled) return;
-      setScreen(Screens.OnStage);
-      setAudioState(AudioStates.Silent);
-    }, [hotKeysEnabled])
-  );
+  // useKeyAction(
+  //   '5',
+  //   useCallback(function goToOnStage() {
+  //     if (!hotKeysEnabled) return;
+  //     setScreen(Screens.OnStage);
+  //     setAudioState(AudioStates.Silent);
+  //   }, [hotKeysEnabled])
+  // );
 
   useKeyAction(
     '\\',
