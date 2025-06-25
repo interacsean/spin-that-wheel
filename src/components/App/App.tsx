@@ -10,6 +10,8 @@ import { updateRemoteItems, useRemoteItems } from './useRemoteItems';
 const FADE_RATE_MULT = 0.05;
 const FADE_RATE_ABS = 0.003;
 
+const DISCARD_LAST_ITEM_BY_DEFAULT = true;
+
 enum WheelStates {
   Spinning,
   Rest,
@@ -49,6 +51,7 @@ function App() {
   const enableHotkeys = useCallback(() => setHotKeysEnabled(true), []);
   const disableHotkeys = useCallback(() => setHotKeysEnabled(false), []);
   const [itemsInitialised, setItemsInitialised] = useState(false);
+  const [ itemToDiscardOnNextSpin, discardItemOnNextSpin ] = useState<string | null>(null); 
 
   const remoteItems = useRemoteItems();
 
@@ -69,8 +72,11 @@ function App() {
 
   const onSpinComplete = useCallback((selectedItem: string) => {
     setCurrentItem(selectedItem);
+    if (DISCARD_LAST_ITEM_BY_DEFAULT) {
+      selectedItem && discardItemOnNextSpin(selectedItem);
+    }
     setState(WheelStates.Rest);
-  }, []);
+  }, [discardItemOnNextSpin]);
 
   useEffect(
     function pickRandomTuneOnPlay() {
@@ -135,7 +141,7 @@ function App() {
     useCallback(
       function playSpinWheelAudio() {
         if (!hotKeysEnabled) return;
-        fadingVolDestination.current = 0.3;
+        fadingVolDestination.current = 0.2;
         let i: ReturnType<typeof setInterval> | undefined;
         if (audioState === AudioStates.WheelAudio) {
           i = setInterval(() => {
@@ -212,14 +218,14 @@ function App() {
     }, [hotKeysEnabled])
   );
 
-  // useKeyAction(
-  //   '4',
-  //   useCallback(function goToOnStage() {
-  //     if (!hotKeysEnabled) return;
-  //     setScreen(Screens.End);
-  //     setAudioState(AudioStates.Silent);
-  //   }, [hotKeysEnabled])
-  // );
+  useKeyAction(
+    '4',
+    useCallback(function goToOnStage() {
+      if (!hotKeysEnabled) return;
+      setScreen(Screens.End);
+      setAudioState(AudioStates.Silent);
+    }, [hotKeysEnabled])
+  );
 
   // useKeyAction(
   //   '5',
@@ -238,7 +244,6 @@ function App() {
     }, [hotKeysEnabled])
   );
 
-  const [ itemToDiscardOnNextSpin, discardItemOnNextSpin ] = useState<string | null>(null); 
   useKeyAction(
     's',
     useCallback(function onSpin() {
