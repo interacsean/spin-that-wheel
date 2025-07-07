@@ -82,12 +82,14 @@ function App() {
     function pickRandomTuneOnPlay() {
       if (audioState === AudioStates.WheelAudio) {
         const randTrack = Math.ceil(Math.random() * 5);
-        setAudioSrc(`benny-hill-${randTrack}.mp3`);
-        console.log('Setting ', `benny-hill-${randTrack}.mp3`)
+        setAudioSrc(`jaja-${randTrack}.mp3`);
+        // setAudioSrc(`benny-hill-${randTrack}.mp3`);
       }
     },
     [audioState === AudioStates.WheelAudio, audioPlayTime]
   )
+
+  console.log({ fadeVol });
 
   const onSpinStart = useCallback(() => {
     // TODO: mute music if playing
@@ -116,9 +118,10 @@ function App() {
         if (audioState === AudioStates.WheelAudio || audioState === AudioStates.OneOff) {
           i = setInterval(() => {
             setFadeVol((v) => {
+              console.log('fading', { v });
               if (fadingVolDestination.current === false) {
                 i && clearInterval(i);
-                return v;
+                return 0;
               }
               if ((v * (1 - FADE_RATE_MULT)) - FADE_RATE_ABS <= fadingVolDestination.current) {
                 i && clearInterval(i);
@@ -297,11 +300,16 @@ function App() {
   return (
     <>
       <AudioPlayer vol={fadeVol} playing={audioSrc === 'hey.mp3' && audioState === AudioStates.OneOff} playTime={audioPlayTime} src={'hey.mp3'}/>
-      <AudioPlayer vol={fadeVol} playing={audioSrc === 'benny-hill-1.mp3' && audioState === AudioStates.WheelAudio} playTime={audioPlayTime} src={'benny-hill-1.mp3'}/>
+      {/* <AudioPlayer vol={fadeVol} playing={audioSrc === 'benny-hill-1.mp3' && audioState === AudioStates.WheelAudio} playTime={audioPlayTime} src={'benny-hill-1.mp3'}/>
       <AudioPlayer vol={fadeVol} playing={audioSrc === 'benny-hill-2.mp3' && audioState === AudioStates.WheelAudio} playTime={audioPlayTime} src={'benny-hill-2.mp3'}/>
       <AudioPlayer vol={fadeVol} playing={audioSrc === 'benny-hill-3.mp3' && audioState === AudioStates.WheelAudio} playTime={audioPlayTime} src={'benny-hill-3.mp3'}/>
       <AudioPlayer vol={fadeVol} playing={audioSrc === 'benny-hill-4.mp3' && audioState === AudioStates.WheelAudio} playTime={audioPlayTime} src={'benny-hill-4.mp3'}/>
-      <AudioPlayer vol={fadeVol} playing={audioSrc === 'benny-hill-5.mp3' && audioState === AudioStates.WheelAudio} playTime={audioPlayTime} src={'benny-hill-5.mp3'}/>
+      <AudioPlayer vol={fadeVol} playing={audioSrc === 'benny-hill-5.mp3' && audioState === AudioStates.WheelAudio} playTime={audioPlayTime} src={'benny-hill-5.mp3'}/> */}
+      <AudioPlayer vol={fadeVol} playing={audioSrc === 'jaja-1.mp3' && audioState === AudioStates.WheelAudio} playTime={audioPlayTime} src={'jaja-1.mp3'}/>
+      <AudioPlayer vol={fadeVol} playing={audioSrc === 'jaja-2.mp3' && audioState === AudioStates.WheelAudio} playTime={audioPlayTime} src={'jaja-2.mp3'}/>
+      <AudioPlayer vol={fadeVol} playing={audioSrc === 'jaja-3.mp3' && audioState === AudioStates.WheelAudio} playTime={audioPlayTime} src={'jaja-3.mp3'}/>
+      <AudioPlayer vol={fadeVol} playing={audioSrc === 'jaja-4.mp3' && audioState === AudioStates.WheelAudio} playTime={audioPlayTime} src={'jaja-4.mp3'}/>
+      <AudioPlayer vol={fadeVol} playing={audioSrc === 'jaja-5.mp3' && audioState === AudioStates.WheelAudio} playTime={audioPlayTime} src={'jaja-5.mp3'}/>
       <div className={getScreenClasses(screen === Screens.Ambient)}>
         <img src="/cr-light.png" style={{ width: '100vw', height: '100vh', objectFit: 'cover' }} />
       </div>
