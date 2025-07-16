@@ -1,6 +1,6 @@
 // import { useEffect, useState } from 'react';
 
-import { useDocSnapshot, useUpdateDocument } from "../../services/db/dbHooks";
+import { useDocSnapshot, updateRemoteDocument } from "../../services/db/dbHooks";
 
 /**
  * From:
@@ -18,5 +18,15 @@ export function useRemoteItems() {
 }
 
 export function updateRemoteItems(items: string) {
-  return useUpdateDocument('wheel-items', 'wheel-items')({ items });
+  return updateRemoteDocument('wheel-items', 'wheel-items')({ items });
+}
+
+export function useRemoteWheelCanvasRatioMax() {
+  const remoteRatio = useDocSnapshot('wheel-canvas-ratio-max', 'wheel-canvas-ratio-max') as { data: { ratio: number }} | null;
+  console.log({ rawRatio : remoteRatio })
+  return remoteRatio?.data?.ratio || 0.25; // Default to 0.25 if not set
+}
+
+export function updateRemoteWheelCanvasRatioMax(ratio: number) {
+  return updateRemoteDocument('wheel-canvas-ratio-max', 'wheel-canvas-ratio-max')({ ratio });
 }

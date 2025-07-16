@@ -5,7 +5,7 @@ import { Wheel } from '../Wheel/Wheel';
 import { useKeyAction } from '../useKeyAction';
 import AudioPlayer from '../../services/local-media/AudioPlayer';
 import { useWakeLock } from '../../services/wake-lock/useWakeLock';
-import { updateRemoteItems, useRemoteItems } from './useRemoteItems';
+import { updateRemoteItems, useRemoteItems, useRemoteWheelCanvasRatioMax, updateRemoteWheelCanvasRatioMax } from './useRemoteItems';
 
 const FADE_RATE_MULT = 0.05;
 const FADE_RATE_ABS = 0.003;
@@ -54,6 +54,8 @@ function App() {
   const [ itemToDiscardOnNextSpin, discardItemOnNextSpin ] = useState<string | null>(null); 
 
   const remoteItems = useRemoteItems();
+  const remoteWheelCanvasRatioMax = useRemoteWheelCanvasRatioMax();
+  const [localWheelCanvasRatioMax, setLocalWheelCanvasRatioMax] = useState(remoteWheelCanvasRatioMax);
 
   useEffect(() => {
     if (remoteItems && !itemsInitialised) {
@@ -62,6 +64,10 @@ function App() {
       setItemsInitialised(true);
     }
   }, [!!remoteItems, itemsInitialised])
+
+  useEffect(() => {
+    setLocalWheelCanvasRatioMax(remoteWheelCanvasRatioMax);
+  }, [remoteWheelCanvasRatioMax]);
 
   const setRemoteItemsFromInitial = useCallback(() => {
     if (initialItems) {
@@ -118,7 +124,6 @@ function App() {
         if (audioState === AudioStates.WheelAudio || audioState === AudioStates.OneOff) {
           i = setInterval(() => {
             setFadeVol((v) => {
-              console.log('fading', { v });
               if (fadingVolDestination.current === false) {
                 i && clearInterval(i);
                 return 0;
@@ -172,7 +177,7 @@ function App() {
 
   useKeyAction(
     'h',
-    useCallback(function goToAmbient() {;
+    useCallback(function goToAmbient() {
       if (!hotKeysEnabled) return;
       if (audioSrc !== 'hey.mp3' || fadeVol < 1) {
         setFadeVol(1);
@@ -290,6 +295,22 @@ function App() {
     resetItems();
   }, [hotKeysEnabled, resetItems]));
 
+  useKeyAction('-', useCallback(function decreaseWheelScale() {
+    if (!hotKeysEnabled) return;
+    const newRatio = Math.max(0.1, localWheelCanvasRatioMax - 0.05);
+    setLocalWheelCanvasRatioMax(newRatio);
+    updateRemoteWheelCanvasRatioMax(newRatio);
+    setResetZoomTimestampTrigger(Date.now());
+  }, [hotKeysEnabled, localWheelCanvasRatioMax]));
+
+  useKeyAction('=', useCallback(function increaseWheelScale() {
+    if (!hotKeysEnabled) return;
+    const newRatio = Math.min(0.9, localWheelCanvasRatioMax + 0.05);
+    setLocalWheelCanvasRatioMax(newRatio);
+    updateRemoteWheelCanvasRatioMax(newRatio);
+    setResetZoomTimestampTrigger(Date.now());
+  }, [hotKeysEnabled, localWheelCanvasRatioMax]));
+
   const updateInitialItems = useCallback(
     (textAreaValue: string) => {
       setInitialItems(textAreaValue)
@@ -338,6 +359,7 @@ function App() {
             onSpinStart={onSpinStart}
             onSpinComplete={onSpinComplete}
             resetZoomTimestampTrigger={resetZoomTimestampTrigger}
+            wheelCanvasRatioMax={localWheelCanvasRatioMax}
           />
         )}
       </div>
@@ -360,6 +382,8 @@ function App() {
                     <li>[K] - Keep the selected prompt on next spin (this is the default behaviour, if you don't press X first)</li>
                   </ul></li>
                   <li>[Z] - Zoom out</li>
+                  <li>[-] - Decrease wheel size</li>
+                  <li>[=] - Increase wheel size</li>
                   <li>Shift + [F] - Lower Benny Hill music volume</li>
                   <li>[F] - Fade Benny Hill music out</li>
                   <li>[B] - Stop Benny Hill music (hard stop)</li>

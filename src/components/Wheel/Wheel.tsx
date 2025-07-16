@@ -3,7 +3,7 @@ import { calculateChosenItem } from '../Wheel/calculateChosenItem';
 import { useFullScreenCanvas } from './useFullScreenCanvas';
 import { useKeyAction } from '../useKeyAction';
 
-const WHEEL_CANVAS_RATIO_MAX = 0.75;
+const WHEEL_CANVAS_RATIO_MAX = 0.25; // 0.75;
 const TEXT_TO_WHEEL_RATIO = 16.5;
 const WHEEL_VOLUME = 0.6;
 
@@ -13,6 +13,7 @@ type WheelProps = {
   onSpinComplete: (item: string) => void;
   onSpinStart: () => void;
   resetZoomTimestampTrigger: number;
+  wheelCanvasRatioMax: number;
 };
 
 function add(toAdd: number, baseNum: string) {
@@ -116,14 +117,15 @@ function drawWheel(
   zoom: number = 0,
   spinning: boolean = false,
   _speed: number,
+  wheelCanvasRatioMax: number = WHEEL_CANVAS_RATIO_MAX,
 ) {
   const canvas = canvasRef.current;
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
   if (!ctx) return;
 
-  const wheelWidth = canvas.width * WHEEL_CANVAS_RATIO_MAX;
-  const wheelHeight = canvas.height * WHEEL_CANVAS_RATIO_MAX;
+  const wheelWidth = canvas.width * wheelCanvasRatioMax;
+  const wheelHeight = canvas.height * wheelCanvasRatioMax;
   const wheelLeft = (canvas.width - wheelWidth) / 2;
   const wheelTop = (canvas.height - wheelHeight) / 2;
   const centerX = wheelLeft + wheelWidth / 2;
@@ -282,17 +284,19 @@ function drawWheel(
     const flashRating = ((flashIndex + i) % (lightCount / FLASHSIMULTANEOUSTRACKS)) / (lightCount / FLASHSIMULTANEOUSTRACKS);
 
     if (spinning && flashRating > 0.3) {
-      const flashImgX = lightX - flashImgWidth / 2
-      const flashImgY = lightY - flashImgHeight / 2
+      const scaledFlashImgWidth = flashImgWidth * wheelCanvasRatioMax * 1.2;
+      const scaledFlashImgHeight = flashImgHeight * wheelCanvasRatioMax * 1.2;
+      const flashImgX = lightX - scaledFlashImgWidth / 2
+      const flashImgY = lightY - scaledFlashImgHeight / 2
       if (flashRating < 0.6) ctx.globalAlpha = 1;
       else if (flashRating < 0.8) ctx.globalAlpha = 0.7;
       else if (flashRating <= 1) ctx.globalAlpha = 0.3;
       else ctx.globalAlpha = 1;
       if (flashImg.complete) {
-        ctx.drawImage(flashImg, flashImgX, flashImgY, flashImgWidth, flashImgHeight);
+        ctx.drawImage(flashImg, flashImgX, flashImgY, scaledFlashImgWidth, scaledFlashImgHeight);
       } else {
         flashImg.onload = () => {
-          ctx.drawImage(flashImg, flashImgX, flashImgY, flashImgWidth, flashImgHeight);
+          ctx.drawImage(flashImg, flashImgX, flashImgY, scaledFlashImgWidth, scaledFlashImgHeight);
         };
       }
     }
@@ -330,22 +334,22 @@ function drawWheel(
     const edgeLines = [
       {
         angle: startAngle + (0.04 / (2 * Math.PI)) + Math.PI, // Highlight edge line
-        lineWidth: 3,
+        lineWidth: 4 * wheelCanvasRatioMax,
         strokeStyle: '#666666'
       },
       {
         angle: startAngle + (0.02 / (2 * Math.PI)) + Math.PI, // Highlight edge line
-        lineWidth: 3,
+        lineWidth: 4 * wheelCanvasRatioMax,
         strokeStyle: '#444444'
       },
       {
         angle: startAngle + Math.PI, // First edge line
-        lineWidth: 3,
+        lineWidth: 4 * wheelCanvasRatioMax,
         strokeStyle: '#222222'
       },
       {
         angle: endAngle + Math.PI, // Second edge line
-        lineWidth: 3,
+        lineWidth: 4 * wheelCanvasRatioMax,
         strokeStyle: '#222222'
       }
     ];
@@ -484,7 +488,8 @@ function startWheelAnimation(
   canvasRef: Ref<HTMLCanvasElement>,
   angle: number = 0,
   items: string[],
-  callback: (angle: number) => void
+  callback: (angle: number) => void,
+  wheelCanvasRatioMax: number = WHEEL_CANVAS_RATIO_MAX
 ) {
   const slowdownCutoff = 0.0025;
   const spinAccelerationAbs = -0.000012;
@@ -511,7 +516,7 @@ function startWheelAnimation(
   const animateSpin: FrameRequestCallback = (time) => {
     const timeDelta = time - lastAnimationTime;
     lastAnimationTime = time;
-    let startAngle = angle;
+    const startAngle = angle;
     if (spinVelocity > 0) {
       if (spinVelocity < velocityToStartZooming) {
         // TODO: work on zoom rate and velocity cutoffs, and some easing.  Maybe as a sine ratio of some velocity
@@ -553,7 +558,7 @@ function startWheelAnimation(
           console.log('hit terminal')
         }
       }
-      drawWheel(canvasRef, angle, items, zoom, spinVelocity > 0, roughSpeed);
+      drawWheel(canvasRef, angle, items, zoom, spinVelocity > 0, roughSpeed, wheelCanvasRatioMax);
       if (Math.floor(angle / segmentWedgeAngle) > Math.floor(startAngle / segmentWedgeAngle) || shouldHaveTickedEarlier) {
         shouldHaveTickedEarlier = true;
         if (timeSinceLastTickSound === 0 || time - timeSinceLastTickSound > minTimeBetweenTickSounds) {
@@ -564,8 +569,7 @@ function startWheelAnimation(
       }
       requestAnimationFrame(animateSpin);
     } else {
-      drawWheel(canvasRef, angle, items, zoom, false, 0);
-      console.log('calling cb');
+      drawWheel(canvasRef, angle, items, zoom, false, 0, wheelCanvasRatioMax);
       callback(angle);
     }
   };
@@ -578,13 +582,14 @@ export const Wheel = ({
   onSpinComplete,
   onSpinStart,
   resetZoomTimestampTrigger,
+  wheelCanvasRatioMax,
 }: WheelProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [wheelAngle, setWheelAngle] = useState(0);
   
   const redrawWheel = useCallback((zoom: number = 0) => {
-    drawWheel(canvasRef, wheelAngle, items, zoom, spinning, 0);
-  }, [wheelAngle, items, spinning]);
+    drawWheel(canvasRef, wheelAngle, items, zoom, spinning, 0, wheelCanvasRatioMax);
+  }, [wheelAngle, items, spinning, wheelCanvasRatioMax]);
 
   useEffect(() => {
     redrawWheel();
@@ -608,7 +613,7 @@ export const Wheel = ({
       const selectedItem = calculateChosenItem(items, finishingAngle);
       setWheelAngle(finishingAngle);
       onSpinComplete(selectedItem);
-    });
+    }, wheelCanvasRatioMax);
   };
   useEffect(
     function spinThatWheel() {

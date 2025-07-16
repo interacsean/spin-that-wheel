@@ -40,7 +40,7 @@ export function useDocSnapshot<T>(collectionName: string, documentId: string, db
   return data;
 }
 
-export function useUpdateDocument<T extends { [x: string]: any; }>
+export function updateRemoteDocument<T extends { [x: string]: any; }>
   (collectionName: string, documentId: string, db = firestoreDb) {
   return (data: T) => {
     setDoc(doc(db, collectionName, documentId), data);
