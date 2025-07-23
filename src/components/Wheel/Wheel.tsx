@@ -158,14 +158,14 @@ function drawWheel(
   ctx.translate(-centerX, -centerY);
   ctx.translate(zoom * wheelRadius * 0.70, 0);
   
-  const minBgScale = Math.max(
-    canvas.width / wheelBgImg.width, canvas.height / wheelBgImg.height
-  );
-
-  const bgImgWidth = wheelBgImg.width * minBgScale / zoomedOutScale;
-  const bgImgHeight = wheelBgImg.height * minBgScale / zoomedOutScale;
-  const bgImgX = centerX - bgImgWidth / 2
-  const bgImgY = centerY - bgImgHeight / 2
+  // --- all of this is if you want to show a bg for the wheel ---
+  // const minBgScale = Math.max(
+  //   canvas.width / wheelBgImg.width, canvas.height / wheelBgImg.height
+  // );
+  // const bgImgWidth = wheelBgImg.width * minBgScale / zoomedOutScale;
+  // const bgImgHeight = wheelBgImg.height * minBgScale / zoomedOutScale;
+  // const bgImgX = centerX - bgImgWidth / 2
+  // const bgImgY = centerY - bgImgHeight / 2
   // if (wheelBgImg.complete) {
   //   ctx.drawImage(wheelBgImg, bgImgX, bgImgY, bgImgWidth, bgImgHeight);
   // } else {
@@ -173,6 +173,7 @@ function drawWheel(
   //     ctx.drawImage(wheelBgImg, bgImgX, bgImgY, bgImgWidth, bgImgHeight);
   //   };
   // }
+
   const RINGS_SCREEN_SCALE_RATIO = wheelRadius / 292;
   const garkGreyOuterSpokeWidth = 12 * RINGS_SCREEN_SCALE_RATIO;
   const fusciaWidth = garkGreyOuterSpokeWidth + (24) * RINGS_SCREEN_SCALE_RATIO;
