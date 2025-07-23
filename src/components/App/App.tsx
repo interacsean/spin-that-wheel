@@ -124,7 +124,7 @@ function App() {
             setFadeVol((v) => {
               if (fadingVolDestination.current === false) {
                 i && clearInterval(i);
-                return v;
+                return 0;
               }
               if ((v * (1 - FADE_RATE_MULT)) - FADE_RATE_ABS <= fadingVolDestination.current) {
                 i && clearInterval(i);

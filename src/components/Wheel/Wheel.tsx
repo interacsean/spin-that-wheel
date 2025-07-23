@@ -166,13 +166,13 @@ function drawWheel(
   const bgImgHeight = wheelBgImg.height * minBgScale / zoomedOutScale;
   const bgImgX = centerX - bgImgWidth / 2
   const bgImgY = centerY - bgImgHeight / 2
-  if (wheelBgImg.complete) {
-    ctx.drawImage(wheelBgImg, bgImgX, bgImgY, bgImgWidth, bgImgHeight);
-  } else {
-    wheelBgImg.onload = () => {
-      ctx.drawImage(wheelBgImg, bgImgX, bgImgY, bgImgWidth, bgImgHeight);
-    };
-  }
+  // if (wheelBgImg.complete) {
+  //   ctx.drawImage(wheelBgImg, bgImgX, bgImgY, bgImgWidth, bgImgHeight);
+  // } else {
+  //   wheelBgImg.onload = () => {
+  //     ctx.drawImage(wheelBgImg, bgImgX, bgImgY, bgImgWidth, bgImgHeight);
+  //   };
+  // }
   const RINGS_SCREEN_SCALE_RATIO = wheelRadius / 292;
   const garkGreyOuterSpokeWidth = 12 * RINGS_SCREEN_SCALE_RATIO;
   const fusciaWidth = garkGreyOuterSpokeWidth + (24) * RINGS_SCREEN_SCALE_RATIO;
