@@ -149,14 +149,17 @@ function drawWheel(
 
   const zoomedOutScale = 0.95
   // todo: make relative to screen ratio
-  const maxZoomScale = 1.2; // Arbitrary scale value to zoom in fully to one segment
+  // Arbitrary scale value to zoom in fully to one segment
+  // maxZoomScale = 1.2; // For Theory Bar is ok
+  const maxZoomScale = 1.9; // For comfest - 16:9 screen
   const zoomScale = zoomedOutScale + zoom * maxZoomScale;
 
   ctx.save();
   ctx.translate(centerX, centerY);
   ctx.scale(zoomScale, zoomScale);
   ctx.translate(-centerX, -centerY);
-  ctx.translate(zoom * wheelRadius * 0.70, 0);
+  const zoomXOffsetScale = 0.95;
+  ctx.translate(zoom * wheelRadius * zoomXOffsetScale, 0);
   
   // --- all of this is if you want to show a bg for the wheel ---
   // const minBgScale = Math.max(
