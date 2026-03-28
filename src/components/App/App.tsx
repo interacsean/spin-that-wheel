@@ -10,6 +10,16 @@ import { updateRemoteItems, useRemoteItems, useRemoteWheelCanvasRatioMax, update
 const FADE_RATE_MULT = 0.05;
 const FADE_RATE_ABS = 0.003;
 
+export const MUSIC_TRACKS = [
+  { src: '/music/Bruno Mars - 24K Magic (Lyrics).mp3', startTime: 4 },
+  { src: '/music/Chappell Roan - HOT TO GO! (Official Music Video).mp3', startTime: 15 },
+  { src: '/music/Dua Lipa - Don\'t Start Now (Lyrics).mp3', startTime: 3 },
+  { src: '/music/Jessie J - Domino (Official Video).mp3', startTime: 5 },
+  { src: '/music/Miley Cyrus - Flowers (Lyrics).mp3', startTime: 5 },
+  { src: '/music/Starships - Nicki Minaj (Lyrics).mp3', startTime: 12 },
+  { src: '/music/Will Smith - Gettin\' Jiggy Wit It.mp3', startTime: 8 },
+];
+
 const DISCARD_LAST_ITEM_BY_DEFAULT = true;
 
 enum WheelStates {
@@ -31,6 +41,7 @@ enum Screens {
 enum AudioStates {
   WheelAudio,
   OneOff,
+  Music,
   Silent,
 }
 
@@ -119,7 +130,7 @@ function App() {
         if (!hotKeysEnabled) return;
         fadingVolDestination.current = 0;
         let i: ReturnType<typeof setInterval> | undefined;
-        if (audioState === AudioStates.WheelAudio || audioState === AudioStates.OneOff) {
+        if (audioState === AudioStates.WheelAudio || audioState === AudioStates.OneOff || audioState === AudioStates.Music) {
           i = setInterval(() => {
             setFadeVol((v) => {
               if (fadingVolDestination.current === false) {
@@ -149,7 +160,7 @@ function App() {
         if (!hotKeysEnabled) return;
         fadingVolDestination.current = 0.2;
         let i: ReturnType<typeof setInterval> | undefined;
-        if (audioState === AudioStates.WheelAudio) {
+        if (audioState === AudioStates.WheelAudio || audioState === AudioStates.Music) {
           i = setInterval(() => {
             setFadeVol((v) => {
               if (fadingVolDestination.current === false) {
@@ -186,6 +197,44 @@ function App() {
       setAudioState(AudioStates.Silent);
       setAudioSrc('benny-hill-1.mp3');
     }, [audioSrc, fadeVol, hotKeysEnabled])
+  );
+
+  useKeyAction(
+    'm',
+    useCallback(
+      function playMusic() {
+        if (!hotKeysEnabled) return;
+        // Use functional updater to read true current state (avoids stale closure)
+        let wasPlaying = false;
+        setAudioState((prev) => {
+          if (prev === AudioStates.Music) {
+            wasPlaying = true;
+            return AudioStates.Silent;
+          }
+          return prev;
+        });
+        if (wasPlaying) return;
+        const track = MUSIC_TRACKS[Math.floor(Math.random() * MUSIC_TRACKS.length)];
+        setAudioSrc(track.src);
+        setAudioState(AudioStates.Music);
+        setAudioPlayTime(Date.now());
+        // Fade in from 0 to 1
+        setFadeVol(0);
+        fadingVolDestination.current = false;
+        let i: ReturnType<typeof setInterval> | undefined;
+        i = setInterval(() => {
+          setFadeVol((v) => {
+            const next = v + FADE_RATE_MULT + FADE_RATE_ABS;
+            if (next >= 1) {
+              i && clearInterval(i);
+              return 1;
+            }
+            return next;
+          });
+        }, 1000 / 24);
+      },
+      [hotKeysEnabled]
+    )
   );
 
   useKeyAction(
@@ -324,6 +373,9 @@ function App() {
       <AudioPlayer vol={fadeVol} playing={audioSrc === 'benny-hill-3.mp3' && audioState === AudioStates.WheelAudio} playTime={audioPlayTime} src={'benny-hill-3.mp3'}/>
       <AudioPlayer vol={fadeVol} playing={audioSrc === 'benny-hill-4.mp3' && audioState === AudioStates.WheelAudio} playTime={audioPlayTime} src={'benny-hill-4.mp3'}/>
       <AudioPlayer vol={fadeVol} playing={audioSrc === 'benny-hill-5.mp3' && audioState === AudioStates.WheelAudio} playTime={audioPlayTime} src={'benny-hill-5.mp3'}/>
+      {MUSIC_TRACKS.map((track) => (
+        <AudioPlayer key={track.src} vol={fadeVol} playing={audioSrc === track.src && audioState === AudioStates.Music} playTime={audioPlayTime} src={track.src} startTime={track.startTime}/>
+      ))}
       <div className={getScreenClasses(screen === Screens.Ambient)}>
         <img src="/cr-light.png" style={{ width: '100vw', height: '100vh', objectFit: 'cover' }} />
       </div>
@@ -381,6 +433,7 @@ function App() {
                   <li>[F] - Fade Benny Hill music out</li>
                   <li>[B] - Stop Benny Hill music (hard stop)</li>
                 </ul></li>
+                <li>[M] - Play/stop random music track (fades in)</li>
                 <li>Shift + [-] - Restore all removed wheel segments</li>
               </ul>
             </div>

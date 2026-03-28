@@ -5,9 +5,10 @@ type AudioPlayerProps = {
   src: string;
   playTime: number;
   vol: number;
+  startTime?: number;
 }
 
-export const AudioPlayer = ({ playing, playTime, src, vol }: AudioPlayerProps) => {
+export const AudioPlayer = ({ playing, playTime, src, vol, startTime = 0 }: AudioPlayerProps) => {
   const audioRef = useRef<HTMLAudioElement>(null);
 
   const playAudio = () => {
@@ -27,7 +28,7 @@ export const AudioPlayer = ({ playing, playTime, src, vol }: AudioPlayerProps) =
   useEffect(function togglePlaying() {
     if (playing) {
       if (audioRef.current)
-        audioRef.current.currentTime = 0;
+        audioRef.current.currentTime = startTime;
       playAudio();
     } else {
       stopAudio();
