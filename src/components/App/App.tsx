@@ -11,13 +11,19 @@ const FADE_RATE_MULT = 0.05;
 const FADE_RATE_ABS = 0.003;
 
 export const MUSIC_TRACKS = [
-  { src: '/music/Bruno Mars - 24K Magic (Lyrics).mp3', startTime: 4 },
-  { src: '/music/Chappell Roan - HOT TO GO! (Official Music Video).mp3', startTime: 15 },
-  { src: '/music/Dua Lipa - Don\'t Start Now (Lyrics).mp3', startTime: 3 },
-  { src: '/music/Jessie J - Domino (Official Video).mp3', startTime: 5 },
-  { src: '/music/Miley Cyrus - Flowers (Lyrics).mp3', startTime: 5 },
-  { src: '/music/Starships - Nicki Minaj (Lyrics).mp3', startTime: 12 },
-  { src: '/music/Will Smith - Gettin\' Jiggy Wit It.mp3', startTime: 8 },
+  { src: '/music/Bruno Mars - 24K Magic (Lyrics).mp3', startTime: 23, volume: 1 },
+  { src: '/music/Chappell Roan - HOT TO GO! (Official Music Video).mp3', startTime: 29.7, volume: 1 },
+  { src: '/music/Dua Lipa - Don\'t Start Now (Lyrics).mp3', startTime: 8.5, volume: 1 },
+  { src: '/music/Jessie J - Domino (Official Video).mp3', startTime: 5.7, volume: 1.4 },
+  { src: '/music/Miley Cyrus - Flowers (Lyrics).mp3', startTime: 29, volume: 1 },
+  { src: '/music/Starships - Nicki Minaj (Lyrics).mp3', startTime: 29, volume: 1 },
+  { src: '/music/Will Smith - Gettin\' Jiggy Wit It.mp3', startTime: 0.35, volume: 1.1 },
+];
+
+export const SPECIFIC_TRACKS = [
+  { key: 'h', src: '/music/hey.mp3', startTime: 0.2, volume: 1 },
+  { key: 'b', src: '/music/Benny Hill.m4a', startTime: 0.2, volume: 1 },
+  { key: 'n', src: '/music/brazilsamba.mp3', startTime: 0.48, volume: 1 },
 ];
 
 const DISCARD_LAST_ITEM_BY_DEFAULT = true;
@@ -57,7 +63,9 @@ function App() {
   const [audioSrc, setAudioSrc] = useState('benny-hill-1.mp3');
   const [resetZoomTimestampTrigger, setResetZoomTimestampTrigger] = useState<number>(Date.now());;
   const [fadeVol, setFadeVol] = useState(1);
+  const [trackVolume, setTrackVolume] = useState(1);
   const fadingVolDestination = useRef<false | number>(false);
+  const musicQueue = useRef<typeof MUSIC_TRACKS>([]);
   const [hotKeysEnabled, setHotKeysEnabled] = useState(true);
   const enableHotkeys = useCallback(() => setHotKeysEnabled(true), []);
   const disableHotkeys = useCallback(() => setHotKeysEnabled(false), []);
@@ -110,18 +118,29 @@ function App() {
     // TODO: mute music if playing
   }, []);
 
-  useKeyAction(
-    'b',
-    useCallback(
-      function playSpinWheelAudio() {
-        if (!hotKeysEnabled) return;
-        setAudioState((s) => s === AudioStates.WheelAudio 
-          ? AudioStates.Silent 
-          : AudioStates.WheelAudio)
-      },
-      [hotKeysEnabled]
-    )
-  );
+  // Specific track hotkeys: h, b, n — play at full volume, toggle on/off
+  const playSpecificTrack = useCallback((src: string, volume: number) => {
+    if (!hotKeysEnabled) return;
+    let toggled = false;
+    setAudioState((prev) => {
+      if (prev === AudioStates.OneOff) {
+        toggled = true;
+        return AudioStates.Silent;
+      }
+      return prev;
+    });
+    if (toggled) return;
+    fadingVolDestination.current = false;
+    setFadeVol(1);
+    setTrackVolume(volume);
+    setAudioSrc(src);
+    setAudioState(AudioStates.OneOff);
+    setAudioPlayTime(Date.now());
+  }, [hotKeysEnabled]);
+
+  useKeyAction('h', useCallback(() => playSpecificTrack('/music/hey.mp3', SPECIFIC_TRACKS[0].volume), [playSpecificTrack]));
+  useKeyAction('b', useCallback(() => playSpecificTrack('/music/Benny Hill.m4a', SPECIFIC_TRACKS[1].volume), [playSpecificTrack]));
+  useKeyAction('n', useCallback(() => playSpecificTrack('/music/brazilsamba.mp3', SPECIFIC_TRACKS[2].volume), [playSpecificTrack]));
 
   useKeyAction(
     'f',
@@ -160,7 +179,7 @@ function App() {
         if (!hotKeysEnabled) return;
         fadingVolDestination.current = 0.2;
         let i: ReturnType<typeof setInterval> | undefined;
-        if (audioState === AudioStates.WheelAudio || audioState === AudioStates.Music) {
+        if (audioState === AudioStates.WheelAudio || audioState === AudioStates.Music || audioState === AudioStates.OneOff) {
           i = setInterval(() => {
             setFadeVol((v) => {
               if (fadingVolDestination.current === false) {
@@ -185,21 +204,6 @@ function App() {
   );
 
   useKeyAction(
-    'h',
-    useCallback(function goToAmbient() {
-      if (!hotKeysEnabled) return;
-      if (audioSrc !== 'hey.mp3' || fadeVol < 1) {
-        setFadeVol(1);
-        setAudioSrc('hey.mp3');
-        setAudioState(AudioStates.OneOff);
-        return;
-      }
-      setAudioState(AudioStates.Silent);
-      setAudioSrc('benny-hill-1.mp3');
-    }, [audioSrc, fadeVol, hotKeysEnabled])
-  );
-
-  useKeyAction(
     'm',
     useCallback(
       function playMusic() {
@@ -214,8 +218,12 @@ function App() {
           return prev;
         });
         if (wasPlaying) return;
-        const track = MUSIC_TRACKS[Math.floor(Math.random() * MUSIC_TRACKS.length)];
+        if (musicQueue.current.length === 0) {
+          musicQueue.current = [...MUSIC_TRACKS].sort(() => Math.random() - 0.5);
+        }
+        const track = musicQueue.current.shift()!;
         setAudioSrc(track.src);
+        setTrackVolume(track.volume);
         setAudioState(AudioStates.Music);
         setAudioPlayTime(Date.now());
         // Fade in from 0 to 1
@@ -367,14 +375,16 @@ function App() {
 
   return (
     <>
-      <AudioPlayer vol={fadeVol} playing={audioSrc === 'hey.mp3' && audioState === AudioStates.OneOff} playTime={audioPlayTime} src={'hey.mp3'}/>
+      {SPECIFIC_TRACKS.map((track) => (
+        <AudioPlayer key={track.src} vol={Math.min(1, fadeVol * trackVolume)} playing={audioSrc === track.src && audioState === AudioStates.OneOff} playTime={audioPlayTime} src={track.src} startTime={track.startTime}/>
+      ))}
       <AudioPlayer vol={fadeVol} playing={audioSrc === 'benny-hill-1.mp3' && audioState === AudioStates.WheelAudio} playTime={audioPlayTime} src={'benny-hill-1.mp3'}/>
       <AudioPlayer vol={fadeVol} playing={audioSrc === 'benny-hill-2.mp3' && audioState === AudioStates.WheelAudio} playTime={audioPlayTime} src={'benny-hill-2.mp3'}/>
       <AudioPlayer vol={fadeVol} playing={audioSrc === 'benny-hill-3.mp3' && audioState === AudioStates.WheelAudio} playTime={audioPlayTime} src={'benny-hill-3.mp3'}/>
       <AudioPlayer vol={fadeVol} playing={audioSrc === 'benny-hill-4.mp3' && audioState === AudioStates.WheelAudio} playTime={audioPlayTime} src={'benny-hill-4.mp3'}/>
       <AudioPlayer vol={fadeVol} playing={audioSrc === 'benny-hill-5.mp3' && audioState === AudioStates.WheelAudio} playTime={audioPlayTime} src={'benny-hill-5.mp3'}/>
       {MUSIC_TRACKS.map((track) => (
-        <AudioPlayer key={track.src} vol={fadeVol} playing={audioSrc === track.src && audioState === AudioStates.Music} playTime={audioPlayTime} src={track.src} startTime={track.startTime}/>
+        <AudioPlayer key={track.src} vol={Math.min(1, fadeVol * trackVolume)} playing={audioSrc === track.src && audioState === AudioStates.Music} playTime={audioPlayTime} src={track.src} startTime={track.startTime}/>
       ))}
       <div className={getScreenClasses(screen === Screens.Ambient)}>
         <img src="/cr-light.png" style={{ width: '100vw', height: '100vh', objectFit: 'cover' }} />
@@ -429,10 +439,12 @@ function App() {
                   <li>[Z] - Zoom out</li>
                   <li>[-] - Decrease wheel size</li>
                   <li>[=] - Increase wheel size</li>
-                  <li>Shift + [F] - Lower Benny Hill music volume</li>
-                  <li>[F] - Fade Benny Hill music out</li>
-                  <li>[B] - Stop Benny Hill music (hard stop)</li>
+                  <li>Shift + [F] - Lower music volume</li>
+                  <li>[F] - Fade music out</li>
                 </ul></li>
+                <li>[H] - Play/stop hey.mp3</li>
+                <li>[B] - Play/stop Benny Hill</li>
+                <li>[N] - Play/stop Brazil Samba</li>
                 <li>[M] - Play/stop random music track (fades in)</li>
                 <li>Shift + [-] - Restore all removed wheel segments</li>
               </ul>

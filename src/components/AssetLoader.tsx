@@ -1,6 +1,6 @@
 import React from 'react';
 import { usePreloadAssets } from '../hooks/usePreloadAssets';
-import { MUSIC_TRACKS } from './App/App';
+import { MUSIC_TRACKS, SPECIFIC_TRACKS } from './App/App';
 import './AssetLoader.css';
 
 interface AssetLoaderProps {
@@ -32,6 +32,7 @@ const assetsList = {
     '/hey.mp3',
     // '/bh-01.mp3',
     ...MUSIC_TRACKS.map(t => t.src),
+    ...SPECIFIC_TRACKS.map(t => t.src),
   ],
 };
 
