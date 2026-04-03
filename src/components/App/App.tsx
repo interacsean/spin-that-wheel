@@ -24,6 +24,7 @@ export const SPECIFIC_TRACKS = [
   { key: 'h', src: '/music/hey.mp3', startTime: 0.2, volume: 1 },
   { key: 'b', src: '/music/Benny Hill.m4a', startTime: 0.2, volume: 1 },
   { key: 'n', src: '/music/brazilsamba.mp3', startTime: 0.48, volume: 1 },
+  { key: 'c', src: '/music/aoc.mp3', startTime: 0, volume: 1 },
 ];
 
 const DISCARD_LAST_ITEM_BY_DEFAULT = true;
@@ -141,6 +142,7 @@ function App() {
   useKeyAction('h', useCallback(() => playSpecificTrack('/music/hey.mp3', SPECIFIC_TRACKS[0].volume), [playSpecificTrack]));
   useKeyAction('b', useCallback(() => playSpecificTrack('/music/Benny Hill.m4a', SPECIFIC_TRACKS[1].volume), [playSpecificTrack]));
   useKeyAction('n', useCallback(() => playSpecificTrack('/music/brazilsamba.mp3', SPECIFIC_TRACKS[2].volume), [playSpecificTrack]));
+  useKeyAction('c', useCallback(() => playSpecificTrack('/music/aoc.mp3', SPECIFIC_TRACKS[3].volume), [playSpecificTrack]));
 
   useKeyAction(
     'f',
@@ -445,6 +447,7 @@ function App() {
                 <li>[H] - Play/stop hey.mp3</li>
                 <li>[B] - Play/stop Benny Hill</li>
                 <li>[N] - Play/stop Brazil Samba</li>
+                <li>[C] - Play/stop AOC</li>
                 <li>[M] - Play/stop random music track (fades in)</li>
                 <li>Shift + [-] - Restore all removed wheel segments</li>
               </ul>
